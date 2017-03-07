@@ -29,13 +29,33 @@ public class Generator {
 
     return grid;
   }
+  
+  public int countEmpty(int[][] puzzle)
+  {
+	  int i,j,count = 0;
+	  for ( i = 0; i < 9; i++)
+		{
+			for ( j = 0; j < 9; j++)
+			{
+				if(puzzle[i][j] == 0)
+					count++;
+			}
+		}
+	  return count;
+  }
+  
   public void printPuzzle(int[][] puzzle)
   {
-	  for (int i = 0; i < 9; i++)
+	  int i,j;
+	  for ( i = 0; i < 9; i++)
 		{
-			for (int j = 0; j < 9; j++)
+			for ( j = 0; j < 9; j++)
 			{
-				System.out.print(puzzle[i][j]);
+				System.out.print(puzzle[i][j] + " ");
+			}
+			if (i % 3 == 2)
+			{
+				System.out.print("\n-----------------");
 			}
 			System.out.println();
 		}
@@ -44,7 +64,7 @@ public class Generator {
   {
 	// TODO Auto-generated method stub
 	Generator generator = new Generator();
-	Grid grid = generator.generate(42);
+	Grid grid = generator.generate(num);
 	int[][] puzzle = new int[9][9];
 	for (int i = 0; i < 9; i++)
 	{
@@ -78,3 +98,5 @@ private Grid generate() {
     return grid;
   }
 }
+
+
