@@ -44,37 +44,6 @@ public class Generator {
 	  return count;
   }
   
-  public void printPuzzle(int[][] puzzle)
-  {
-	  int i,j;
-	  for ( i = 0; i < 9; i++)
-		{
-			for ( j = 0; j < 9; j++)
-			{
-				System.out.print(puzzle[i][j] + " ");
-			}
-			if (i % 3 == 2)
-			{
-				System.out.print("\n-----------------");
-			}
-			System.out.println();
-		}
-  }
-  public int[][] intPuzzleGen(int num)
-  {
-	// TODO Auto-generated method stub
-	Generator generator = new Generator();
-	Grid grid = generator.generate(num);
-	int[][] puzzle = new int[9][9];
-	for (int i = 0; i < 9; i++)
-	{
-		for (int j = 0; j < 9; j++)
-		{
-			puzzle[i][j] = grid.grid[i][j].getValue();
-		}
-	}
-	return puzzle;
-  }
   private void eraseCells(Grid grid, int numberOfEmptyCells) {
     Random random = new Random();
     for (int i = 0; i < numberOfEmptyCells; i++) {
