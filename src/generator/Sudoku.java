@@ -123,19 +123,31 @@ public class Sudoku {
 		return puzzle;
 	}
 	
-	public int[][] importCSVpuzzle(String filename) throws IOException
+	public int importPuzzle(String diff, int[][] puz) throws IOException
 	{
-		int puz[][] = new int[9][9];
+		int num = 1 + (int)(Math.random() * 20); 
+		String filename = "puzzles/" + diff + "/" + diff + "Puz" + num + ".txt";
 		File f = new File(filename);
 		Scanner infile = new Scanner(f);
-		infile.nextLine();
-		String s = infile.nextLine();
-		System.out.println(s);
-		for (int i = 0; i < 81; i++)
+		String line;
+		for (int i = 0; i < 9; i++)
 		{
-			
+			line = infile.nextLine();
+			for (int j = 0; j < 9; j++)
+			{
+				if (line.charAt(j) == '.')
+				{
+					puz[i][j] = 0;
+				}
+				else
+				{
+					puz[i][j] = Character.getNumericValue(line.charAt(j));
+				}
+			}
+			//System.out.println(line);
 		}
-		return puz;
+		infile.close();
+		return num;
 	}
 }
 
