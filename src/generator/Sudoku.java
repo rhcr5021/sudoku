@@ -24,7 +24,8 @@ public class Sudoku {
 		{
 			for (int j = 0; j < 9; j++)
 			{
-				if(i > j && row[i] == row[j])
+				//only count once per pair and don't count zeros
+				if(i > j && row[i] == row[j] && row[i] != 0)
 				{
 					count++;
 				}
@@ -125,8 +126,47 @@ public class Sudoku {
 	
 	public int importPuzzle(String diff, int[][] puz) throws IOException
 	{
+		//pass difficulty and puzzle reference
+		//return puzzle number
+		//twenty puzzles for each difficulty
+		//get random puzzle number
+		//scale puzzle between 1 and 20
 		int num = 1 + (int)(Math.random() * 20); 
+		//parse file name
 		String filename = "puzzles/" + diff + "/" + diff + "Puz" + num + ".txt";
+		File f = new File(filename);
+		Scanner infile = new Scanner(f);
+		String line;
+		//go through 9 lines in puzzle
+		for (int i = 0; i < 9; i++)
+		{
+			//go through the 9 chars in line
+			line = infile.nextLine();
+			for (int j = 0; j < 9; j++)
+			{
+				if (line.charAt(j) == '.')
+				{
+					//'.'s are 0s
+					puz[i][j] = 0;
+				}
+				else
+				{
+					//convert char to int
+					puz[i][j] = Character.getNumericValue(line.charAt(j));
+				}
+			}
+		}
+		infile.close();
+		//return puzzle id
+		return num;
+	}
+	
+	public int[][] importSolution(String diff, int num) throws IOException
+	{
+		//return solution for specified difficulty and puzzle number
+		int[][] puz = new int[9][9];
+		//parse file name and path
+		String filename = "puzzles/" + diff + "/" + diff + "Sol" + num + ".txt";
 		File f = new File(filename);
 		Scanner infile = new Scanner(f);
 		String line;
@@ -137,17 +177,18 @@ public class Sudoku {
 			{
 				if (line.charAt(j) == '.')
 				{
+					//'.'s are zeros
 					puz[i][j] = 0;
 				}
 				else
 				{
+					//convert to int
 					puz[i][j] = Character.getNumericValue(line.charAt(j));
 				}
 			}
-			//System.out.println(line);
 		}
 		infile.close();
-		return num;
+		return puz;
 	}
 }
 
