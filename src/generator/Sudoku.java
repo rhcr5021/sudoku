@@ -2,19 +2,225 @@ package generator;
 
 import java.io.*;
 import java.util.Scanner;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.*;
 
 public class Sudoku {
-	public int countErrors(int[][] puz)
+	private Cell[][] puzzle;
+	private Cell[][] solution;
+	private int[] counts;
+	protected int num;
+	
+	public Sudoku(String diff) throws IOException {
+		super();
+		counts = new int[10];
+		num = (int)(Math.random() * 20);
+		puzzle = importPuzzle(diff,num);
+		solution = importSolution(diff, num);
+	}
+	public Sudoku(String diff, int n) throws IOException {
+		super();
+		counts = new int[10];
+		num = n;
+		puzzle = importPuzzle(diff,n);
+		solution = importSolution(diff, n);
+	}
+
+	private class Cell
+	{
+		private int val;
+		private boolean flag;
+		private  Lock l = new ReentrantLock();
+		
+		public Cell(int val, boolean flag) {
+			super();
+			this.val = val;
+			this.flag = flag;
+		}
+
+		public void lock()
+		{
+			l.lock();
+		}
+		
+		public boolean tryLock()
+		{
+			return l.tryLock();
+		}
+		
+		public void unlock()
+		{
+			l.unlock();
+		}
+		
+		public int getVal() {
+			return val;
+		}
+
+		public void setVal(int val) {
+			this.val = val;
+		}
+
+		public boolean getFlag() {
+			return flag;
+		}
+		public void setFlag(boolean flag) {
+			this.flag = flag;
+		}
+	}
+	
+	public void fillNeeds()
+	{
+		int [] needs = getNeeds();
+		int filler = 1;
+		for (int i = 0; i < 9; i++)
+		{
+			for (int j = 0; j < 9; j++)
+			{
+				if (puzzle[i][j].flag == false)
+				{
+					if(needs[filler] == 9)
+					{
+						filler++;
+					}
+					puzzle[i][j].val = filler; 
+					needs[filler]++;
+				}
+			}
+		}
+	}
+	
+	public boolean isValid()
+	{
+		for(int i = 1; i <= 9; i++)
+		{
+			if(countVal(i) != 9)
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private int countVal(int v) {
+		int count = 0;
+		for (int i = 0; i < 9; i++)
+		{
+			for (int j = 0; j < 9; j++)
+			{
+				if (puzzle[i][j].val == v)
+				{
+					count++;
+				}
+			}
+		}
+		return count;
+		
+	}
+	
+	public int[] getNeeds()
+	{
+		int [] needs = new int[10];
+		for (int i = 0; i < 9; i++)
+		{
+			for (int j = 0; j < 9; j++)
+			{
+				if (puzzle[i][j].flag)
+				{
+					needs[puzzle[i][j].val]++;
+				}
+			}
+		}
+		return needs;
+	}
+	
+	public boolean chooseandSwap()
+	{
+		int c1 = (int)(Math.random()*8);
+		int r1 = (int)(Math.random()*8);
+		
+		//or find neighbor
+		
+		int c2 = (int)(Math.random()*8);
+		int r2 = (int)(Math.random()*8);
+		return swap(r1,c1,r2,c2);
+	}
+
+	private boolean swap(int i,int j,int m,int n)
+	{
+		if(puzzle[i][j].getFlag() || puzzle[m][n].getFlag())
+		{
+			return false;
+		}
+		if(puzzle[i][j].tryLock())
+		{
+			try {
+				if(puzzle[m][n].tryLock())
+				{
+					try {
+						//System.out.println(m + "," + n);
+						int temp = puzzle[i][j].getVal();
+						puzzle[i][j].setVal(puzzle[m][n].val);
+						puzzle[m][n].setVal(temp);
+					} finally {
+						puzzle[m][n].unlock();
+					}
+				}
+				else 
+				{
+					return false;
+				}
+			} finally{
+				puzzle[i][j].unlock();
+			}
+		}
+		else
+		{
+			return false;
+		}
+		return true;
+	}
+	
+	public int countErrors()
 	{
 		//count errors for all rows, columns, and boxes
 		int row = 0, col = 0, box = 0;
 		for (int i = 0; i < 9; i++)
 		{
-			row += checkSection(getRow(puz,i));
-			col += checkSection(getCol(puz,i));
-			box += checkSection(getBox(puz,i));
+			row += checkSection(getRow(i));
+			col += checkSection(getCol(i));
+			box += checkSection(getBox(i));
 		}
 		return (row+box+col);
+	}
+	
+	public int countEmpty()
+	{
+		int i,j,count = 0;
+		for ( i = 0; i < 9; i++)
+		{
+			for ( j = 0; j < 9; j++)
+			{
+				if(puzzle[i][j].getVal() == 0)
+					count++;
+			}
+		}
+		return count;
+	}
+	
+	public int countSet()
+	{
+		int i,j,count = 0;
+		for ( i = 0; i < 9; i++)
+		{
+			for ( j = 0; j < 9; j++)
+			{
+				if(puzzle[i][j].getFlag() == true)
+					count++;
+			}
+		}
+		return count;
 	}
 	
 	private int checkSection(int row[]) {
@@ -34,7 +240,7 @@ public class Sudoku {
 		return count;
 	}
 	
-	private int[] getBox(int[][] puz, int i) {
+	private int[] getBox(int i) {
 		//use index i to get col and row indexes for the box
 		/*  _____
 		 * |0|1|2|
@@ -62,7 +268,7 @@ public class Sudoku {
 		{
 			for (int k = col; k < col+3;k++)
 			{
-				box[m] = puz[j][k];
+				box[m] = puzzle[j][k].getVal();
 				m++;
 				
 			}
@@ -70,25 +276,56 @@ public class Sudoku {
 		return box;
 	}
 	
-	private int [] getCol(int[][] puz, int i) {
+	private int [] getCol(int i) {
 		int [] col = new int[9];
 		for (int j = 0; j < 9; j++)
 		{
-			col[j] = puz[j][i];
+			col[j] = puzzle[j][i].getVal();
 		}
 		return col;
 	}
 	
-	private int[] getRow(int[][] puz, int i) {
+	private int[] getRow(int i) {
 		int [] row = new int[9];
 		for (int j = 0; j < 9; j++)
 		{
-			row[j] = puz[i][j];
+			row[j] = puzzle[i][j].getVal();
 		}
 		return row;
 	}
 
-	public void printPuzzle(int[][] puzzle)
+	public void printPuzzle()
+	{
+	  int i,j;
+	  System.out.print("-------------------------\n");
+	  for ( i = 0; i < 9; i++)
+		{
+			for ( j = 0; j < 9; j++)
+			{
+				if (j % 3 == 0)
+				{
+					System.out.print("- ");
+				}
+				if(puzzle[i][j].flag)
+				{
+					System.out.print(puzzle[i][j].val + " ");
+//					String a = "\033[33m" + Integer.toString(puzzle[i][j].val);
+//					System.out.print(a + " ");
+				}
+				else
+				{
+					System.out.print(puzzle[i][j].val + " ");
+				}
+			}
+			if (i % 3 == 2)
+			{
+				System.out.print("-\n------------------------");
+			}
+			System.out.println("-");
+		}
+	}
+	
+	public void printSolution()
 	{
 		  int i,j;
 		  System.out.print("-------------------------\n");
@@ -100,7 +337,7 @@ public class Sudoku {
 					{
 						System.out.print("- ");
 					}
-					System.out.print(puzzle[i][j] + " ");
+					System.out.print(solution[i][j].getVal() + " ");
 				}
 				if (i % 3 == 2)
 				{
@@ -109,29 +346,38 @@ public class Sudoku {
 				System.out.println("-");
 			}
 	}
-	public int[][] intPuzzleGen(int num)
+	public Cell[][] intPuzzleGen(int num)
 	{
 		Generator generator = new Generator();
 		Grid grid = generator.generate(num);
-		int[][] puzzle = new int[9][9];
+		Cell[][] puz = new Cell[9][9];
 		for (int i = 0; i < 9; i++)
 		{
 			for (int j = 0; j < 9; j++)
 			{
-				puzzle[i][j] = grid.grid[i][j].getValue();
+				puz[i][j].setVal(grid.grid[i][j].getValue());
+				if (puz[i][j].getVal() == 0)
+				{
+					puz[i][j].setFlag(false);
+				}
+				else
+				{
+					puz[i][j].setFlag(true);
+				}
 			}
 		}
-		return puzzle;
+		return puz;
 	}
 	
-	public int importPuzzle(String diff, int[][] puz) throws IOException
+	public Cell[][] importPuzzle(String diff, int num) throws IOException
 	{
+		Cell[][] puz = new Cell[9][9];
 		//pass difficulty and puzzle reference
 		//return puzzle number
 		//twenty puzzles for each difficulty
 		//get random puzzle number
 		//scale puzzle between 1 and 20
-		int num = 1 + (int)(Math.random() * 20); 
+
 		//parse file name
 		String filename = "puzzles/" + diff + "/" + diff + "Puz" + num + ".txt";
 		File f = new File(filename);
@@ -147,24 +393,26 @@ public class Sudoku {
 				if (line.charAt(j) == '.')
 				{
 					//'.'s are 0s
-					puz[i][j] = 0;
+					puz[i][j] = new Cell(0,false);
 				}
 				else
 				{
 					//convert char to int
-					puz[i][j] = Character.getNumericValue(line.charAt(j));
+					int n = Character.getNumericValue(line.charAt(j));
+					puz[i][j] = new Cell(Character.getNumericValue(line.charAt(j)),true);
+					counts[n]++;
 				}
 			}
 		}
 		infile.close();
 		//return puzzle id
-		return num;
+		return puz;
 	}
 	
-	public int[][] importSolution(String diff, int num) throws IOException
+	public Cell[][] importSolution(String diff, int num) throws IOException
 	{
 		//return solution for specified difficulty and puzzle number
-		int[][] puz = new int[9][9];
+		Cell[][] puz = new Cell[9][9];
 		//parse file name and path
 		String filename = "puzzles/" + diff + "/" + diff + "Sol" + num + ".txt";
 		File f = new File(filename);
@@ -178,12 +426,12 @@ public class Sudoku {
 				if (line.charAt(j) == '.')
 				{
 					//'.'s are zeros
-					puz[i][j] = 0;
+					puz[i][j] = new Cell(0,false);
 				}
 				else
 				{
 					//convert to int
-					puz[i][j] = Character.getNumericValue(line.charAt(j));
+					puz[i][j] = new Cell(Character.getNumericValue(line.charAt(j)),true);
 				}
 			}
 		}
@@ -191,5 +439,4 @@ public class Sudoku {
 		return puz;
 	}
 }
-
 	

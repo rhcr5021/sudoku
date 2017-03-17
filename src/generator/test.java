@@ -3,52 +3,108 @@ package generator;
 import java.io.IOException;
 
 public class test {
-	static int zeros = 0;
-	static int puzNum;
-	static String diff = "easy";
-	public static void main(String[] args) {
+	public static int zeros = 0;
+	public static int succ = 0;
+	public static int num = 1000;
+	public static int tot = 100;
+	public static int min = Integer.MAX_VALUE;
+	public static Sudoku sud;
+	public static Thread[] swaps;
+	public static String diff = "easy";
+	public static int p = 10;
+	
+	public static void main(String[] args) throws IOException {
+		final long startTime = System.nanoTime();
 		//make generator
 		System.out.println("Method 1: Import a Puzzle");
-		Generator generator = new Generator();
-		Sudoku sud = new Sudoku();
-		int[][] puzzle = new int[9][9];
-		int[][] puzSol = new int[9][9];
-		try {
-			//get a puzzle
-			puzNum = sud.importPuzzle(diff,puzzle);
-			//get its solution
-			puzSol = sud.importSolution(diff, puzNum);
-		} catch (IOException e) {
-			e.printStackTrace();
+		sud = new Sudoku(diff, p);
+		sud.printPuzzle();
+		sud.fillNeeds();
+		sud.printPuzzle();
+		System.out.println("errors: " + sud.countErrors());
+		//Generator generator = new Generator();
+		swaps = new Thread[num];
+		for (int j = 0; j < num; j++)
+		{
+			swaps[j] = new Thread(new Runnable(){
+				public void run() {
+					for(int i = 0; i < tot; i++)
+					{
+						if(sud.chooseandSwap())
+						{
+							succ++;
+						}
+						//while(!sud.chooseandSwap());
+						int m = sud.countErrors();
+						if (m < min)
+						{
+							min = m;
+						}
+					}
+					//System.out.println(succ);	
+				}
+			});
+			swaps[j].start();
 		}
-		System.out.println(diff + "Puz" + puzNum);
+		for (int j = 0; j < num; j++)
+		{
+			try {
+				swaps[j].join();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		System.out.println(diff + "Sol"+sud.num);
+		sud.printSolution();
+		System.out.println(diff+"Puz"+sud.num);
 		//print the puzzle
-		sud.printPuzzle(puzzle);
+		sud.printPuzzle();
 		//find number of empty
-		System.out.println("empty: " + generator.countEmpty(puzzle));
+		System.out.println("empty: " + sud.countEmpty());
 		//count errors
-		System.out.println("errors: " + sud.countErrors(puzzle));	
-		System.out.println(diff + "Sol" + puzNum);
+		System.out.println("errors: " + sud.countErrors());
+		System.out.println("successful swaps: " + succ);	
+		System.out.println("min errors: " + min);
+		System.out.println("puzzle still valid: " + sud.isValid());
+		//System.out.println(diff + "Sol"+sud.num);
 		//print solutions
-		sud.printPuzzle(puzSol);
-		//find empty
-		System.out.println("empty: " + generator.countEmpty(puzSol));
-		//count errors
-		System.out.println("errors: " + sud.countErrors(puzSol));	
-		System.out.println("\n\nMethod 2: Generator Function");
+//		sud.printPuzzle();
+//		System.out.println("errors: " + sud.countErrors());	
+//		sud.fillNeeds();
+//		sud.printPuzzle();
+//		System.out.println("errors: " + sud.countErrors());
+//		int g = 0;
+////		while(sud.countErrors() > 100)
+////		{
+////			boolean w = sud.chooseandSwap();
+////			//System.out.println(w);
+////			if(w)
+////			{
+////				g++;
+////			}
+////			if(g % 100000 == 0)
+////				System.out.println(sud.countErrors());
+////		}
+//		sud.printPuzzle();
+//		System.out.println("errors: " + sud.countErrors());
+//		System.out.println("Successful Swaps" + g);
+//		System.out.println("\n\n \33[33m Method 2: Generator Function");
+		final double duration = System.nanoTime() - startTime;
+		System.out.println("duration: " + (duration/1000000000) + " s");
 		//get a puzzle
-		int[][] puz = sud.intPuzzleGen(zeros);
-		//print it out
-		sud.printPuzzle(puz);
-		//count how many empty values there are
-		System.out.println("empty: " + generator.countEmpty(puz));
-		System.out.println("errors: " + sud.countErrors(puz));
-		//create an error
-		puz[0][0] = puz[8][8];
-		//print the puzzle
-		sud.printPuzzle(puz);
-		//count the errors
-		System.out.println("empty: " + generator.countEmpty(puz));
-		System.out.println("errors: " + sud.countErrors(puz));
+//		int[][] puz = sud.intPuzzleGen(zeros);
+//		//print it out
+//		sud.printPuzzle(puz);
+//		//count how many empty values there are
+//		System.out.println("empty: " + generator.countEmpty(puz));
+//		System.out.println("errors: " + sud.countErrors(puz));
+//		//create an error
+//		puz[0][0] = puz[8][8];
+//		//print the puzzle
+//		sud.printPuzzle(puz);
+//		//count the errors
+//		System.out.println("empty: " + generator.countEmpty(puz));
+//		System.out.println("errors: " + sud.countErrors(puz));
 	}
 }

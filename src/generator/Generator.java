@@ -30,20 +30,6 @@ public class Generator {
     return grid;
   }
   
-  public int countEmpty(int[][] puzzle)
-  {
-	  int i,j,count = 0;
-	  for ( i = 0; i < 9; i++)
-		{
-			for ( j = 0; j < 9; j++)
-			{
-				if(puzzle[i][j] == 0)
-					count++;
-			}
-		}
-	  return count;
-  }
-  
   private void eraseCells(Grid grid, int numberOfEmptyCells) {
     Random random = new Random();
     for (int i = 0; i < numberOfEmptyCells; i++) {
