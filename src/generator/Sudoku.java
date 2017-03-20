@@ -2,32 +2,35 @@ package generator;
 
 import java.io.*;
 import java.util.Scanner;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.*;
 
 public class Sudoku {
-	private Cell[][] puzzle;
-	private Cell[][] solution;
+	protected Cell[][] puzzle;
+	protected final Cell[][] solution;
 	private int[] counts;
 	protected int num;
+	protected String dif;
+	protected int err;
 	
 	public Sudoku(String diff) throws IOException {
 		super();
+		dif = diff;
 		counts = new int[10];
 		num = (int)(Math.random() * 20);
 		puzzle = importPuzzle(diff,num);
 		solution = importSolution(diff, num);
+		err = countErrors();
 	}
 	public Sudoku(String diff, int n) throws IOException {
 		super();
 		counts = new int[10];
 		num = n;
+		dif = diff;
 		puzzle = importPuzzle(diff,n);
 		solution = importSolution(diff, n);
 	}
-
-	private class Cell
+	
+	protected class Cell
 	{
 		private int val;
 		private boolean flag;
@@ -70,6 +73,14 @@ public class Sudoku {
 		}
 	}
 	
+	public void updateErr() {
+		this.err = countErrors();
+	}
+	
+	public int getErr() {
+		return this.err;
+	}
+	
 	public void fillNeeds()
 	{
 		int [] needs = getNeeds();
@@ -89,6 +100,7 @@ public class Sudoku {
 				}
 			}
 		}
+		updateErr();
 	}
 	
 	public boolean isValid()
@@ -179,6 +191,7 @@ public class Sudoku {
 		{
 			return false;
 		}
+		updateErr();
 		return true;
 	}
 	
@@ -242,10 +255,11 @@ public class Sudoku {
 	
 	private int[] getBox(int i) {
 		//use index i to get col and row indexes for the box
-		/*  _____
+		/* =======
 		 * |0|1|2|
 		 * |3|4|5|
 		 * |6|7|8|
+		 * =======
 		 */
 		int row, col;
 		switch(i)
@@ -297,6 +311,7 @@ public class Sudoku {
 	public void printPuzzle()
 	{
 	  int i,j;
+	  System.out.println(dif+"Puz"+num);
 	  System.out.print("-------------------------\n");
 	  for ( i = 0; i < 9; i++)
 		{
@@ -328,6 +343,7 @@ public class Sudoku {
 	public void printSolution()
 	{
 		  int i,j;
+		  System.out.println(dif+"Sol"+num);
 		  System.out.print("-------------------------\n");
 		  for ( i = 0; i < 9; i++)
 			{
@@ -425,7 +441,7 @@ public class Sudoku {
 			{
 				if (line.charAt(j) == '.')
 				{
-					//'.'s are zeros
+					//'.'s are zeros are unfilled cells
 					puz[i][j] = new Cell(0,false);
 				}
 				else
@@ -437,6 +453,15 @@ public class Sudoku {
 		}
 		infile.close();
 		return puz;
+	}
+	
+	public boolean isEmptyLocation(int row,int col)
+	{
+		if (puzzle[row][col].getVal() == 0)
+		{
+			return true;
+		}
+		return false;
 	}
 }
 	
