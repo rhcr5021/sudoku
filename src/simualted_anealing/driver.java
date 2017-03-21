@@ -12,13 +12,7 @@ public class driver {
 	 */
 	public static void main(String[] args) throws IOException {
 		sud = new SimAneal(diff,num);
-		sud.printPuzzle();
-		sud.fillNeeds();
-		sud.printPuzzle();
-		sud.printSolution();
-		
-		System.out.println(sud.countEmpty());
-		System.out.println(sud.countErrors());
+		sud.aneal();
 	}
 
 }

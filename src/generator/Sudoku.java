@@ -30,7 +30,7 @@ public class Sudoku {
 		solution = importSolution(diff, n);
 	}
 	
-	protected class Cell
+	public class Cell
 	{
 		private int val;
 		private boolean flag;
