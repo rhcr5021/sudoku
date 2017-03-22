@@ -13,8 +13,7 @@ public class LogAnealData {
 	SimpleFormatter formatter;
 	public LogAnealData()
 	{
-		Logger logger = Logger.getLogger("MyLog");
-		SimpleDateFormat format = new SimpleDateFormat("M-d_HHmmss");
+		logger = Logger.getLogger("MyLog");
 		try {
 			//fh = new FileHandler("aneal_log_" + format.format(Calendar.getInstance().getTime()) + ".log");
 			fh = new FileHandler("aneal_log.log",true);
@@ -30,8 +29,9 @@ public class LogAnealData {
 		}   
 	}
 	
-	public void logInit()
+	public void logInit(double a, double min_t, int temp_change, double k, double t)
 	{
-		logger.info("Anealing Metadata: ");
+		logger.info("Anealing Metadata: " + "\na: " + a + "\nmin_t: " + min_t + "\ntemp_change: " + temp_change + "\nk: " + k + "\nt: " + t);
 	}
 }
+

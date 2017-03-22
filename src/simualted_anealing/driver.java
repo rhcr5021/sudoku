@@ -1,5 +1,7 @@
 package simualted_anealing;
 
+import generator.Sudoku.Cell;
+
 import java.io.IOException;
 
 import backtracking.ThreadID;
@@ -11,6 +13,12 @@ public class driver {
 	public static Thread[] aneals;
 	public static int num_threads = 100;
 	public static LogAnealData log;
+	
+	static double a=.999;
+	static double min_t=.000000001;
+	static int temp_change = 100;
+	static double k=0.7;
+	static double t=1;
 	/**
 	 * @param args
 	 * @throws IOException 
@@ -18,7 +26,7 @@ public class driver {
 	public static void main(String[] args) throws IOException {
 		final long startTime = System.nanoTime();
 		log = new LogAnealData();
-		log.logInit();
+		log.logInit(a,min_t,temp_change,k,t);
 		sud = new SimAneal(diff,num);
 		sud.printPuzzle();
 		aneals = new Thread[num];
