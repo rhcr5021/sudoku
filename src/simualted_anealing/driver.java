@@ -2,6 +2,7 @@ package simualted_anealing;
 
 import java.io.IOException;
 
+import backtracking.ThreadID;
 
 public class driver {
 	public static SimAneal sud;
@@ -9,14 +10,15 @@ public class driver {
 	public static int num = 12;
 	public static Thread[] aneals;
 	public static int num_threads = 100;
-
+	public static LogAnealData log;
 	/**
 	 * @param args
 	 * @throws IOException 
 	 */
 	public static void main(String[] args) throws IOException {
 		final long startTime = System.nanoTime();
-
+		log = new LogAnealData();
+		log.logInit();
 		sud = new SimAneal(diff,num);
 		sud.printPuzzle();
 		aneals = new Thread[num];
