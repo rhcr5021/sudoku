@@ -12,6 +12,11 @@ public class Sudoku {
 	protected String dif;
 	protected int err;
 	
+	public Cell[][] getPuzzle()
+	{
+		return puzzle;
+	}
+	
 	public Sudoku(String diff) throws IOException {
 		super();
 		dif = diff;
@@ -103,6 +108,21 @@ public class Sudoku {
 		updateErr();
 	}
 	
+	public boolean isSol()
+	{
+		for (int i = 0; i < 9; i++)
+		{
+			for (int j = 0; j < 9; j++)
+			{
+				if (puzzle[i][j].getVal() != solution[i][j].getVal())
+				{
+					return false;
+				}
+			}
+		}
+		return true;
+	}
+	
 	public boolean isValid()
 	{
 		for(int i = 1; i <= 9; i++)
@@ -149,13 +169,13 @@ public class Sudoku {
 	
 	public boolean chooseandSwap()
 	{
-		int c1 = (int)(Math.random()*8);
-		int r1 = (int)(Math.random()*8);
+		int c1 = (int)(Math.random()*9);
+		int r1 = (int)(Math.random()*9);
 		
 		//or find neighbor
 		
-		int c2 = (int)(Math.random()*8);
-		int r2 = (int)(Math.random()*8);
+		int c2 = (int)(Math.random()*9);
+		int r2 = (int)(Math.random()*9);
 		return swap(r1,c1,r2,c2);
 	}
 
@@ -165,9 +185,11 @@ public class Sudoku {
 		{
 			return false;
 		}
+		//while(!puzzle[i][j].tryLock());
 		if(puzzle[i][j].tryLock())
 		{
 			try {
+				//while(!puzzle[m][n].tryLock());
 				if(puzzle[m][n].tryLock())
 				{
 					try {
@@ -455,6 +477,11 @@ public class Sudoku {
 		return puz;
 	}
 	
+	public void resetPuzzle() throws IOException
+	{
+		puzzle = importPuzzle(dif,num);
+	}
+	
 	public boolean isEmptyLocation(int row,int col)
 	{
 		if (puzzle[row][col].getVal() == 0)
@@ -463,5 +490,37 @@ public class Sudoku {
 		}
 		return false;
 	}
+	
+	protected Cell [][] copyPuzzle(Cell[][] puz)
+	{
+		Cell[][] copy = new Cell[9][9];
+		for (int i = 0; i < 9; i++)
+		{
+			//go through the 9 chars in line
+			for (int j = 0; j < 9; j++)
+			{
+				copy[i][j] = new Cell(puz[i][j].getVal(),puz[i][j].getFlag());	
+			}
+		}
+		return copy;
+	}
+	
+	public int countCorrect(Cell[][] puz)
+	{
+		int count = 0;
+		for (int i = 0; i < 9; i++)
+		{
+			//go through the 9 chars in line
+			for (int j = 0; j < 9; j++)
+			{
+				if(solution[i][j].getVal() == puz[i][j].getVal())
+				{
+					count++;
+				}
+			}
+		}
+		return count;
+	}
+	
 }
 	

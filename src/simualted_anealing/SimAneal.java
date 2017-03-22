@@ -1,13 +1,17 @@
 package simualted_anealing;
 
 import java.io.IOException;
+import java.util.concurrent.locks.ReentrantLock;
+
+import sun.misc.Lock;
 
 import generator.Sudoku;
 import generator.Sudoku.Cell;
 
+
 public class SimAneal extends Sudoku{
 	private Cell[][] tempPuzzle;
-
+	
 	public SimAneal(String diff) throws IOException {
 		super(diff);
 		// TODO Auto-generated constructor stub
@@ -15,6 +19,7 @@ public class SimAneal extends Sudoku{
 	public SimAneal(String diff, int n) throws IOException {
 		super(diff,n);
 	}
+	
 	
 	public boolean chooseandSwap()
 	{
@@ -62,6 +67,7 @@ public class SimAneal extends Sudoku{
 		}
 		return true;
 	}
+	
 	
 	public int countErrors(Cell[][] mypuzz)
 	{
@@ -120,7 +126,7 @@ public class SimAneal extends Sudoku{
 		{
 			for (int k = col; k < col+3;k++)
 			{
-				box[m] = tempPuzzle[j][k].getVal();
+				box[m] = mypuzz[j][k].getVal();
 				m++;
 				
 			}
@@ -132,7 +138,7 @@ public class SimAneal extends Sudoku{
 		int [] col = new int[9];
 		for (int j = 0; j < 9; j++)
 		{
-			col[j] = tempPuzzle[j][i].getVal();
+			col[j] = mypuzz[j][i].getVal();
 		}
 		return col;
 	}
@@ -141,11 +147,106 @@ public class SimAneal extends Sudoku{
 		int [] row = new int[9];
 		for (int j = 0; j < 9; j++)
 		{
-			row[j] = tempPuzzle[i][j].getVal();
+			row[j] = mypuzz[i][j].getVal();
 		}
 		return row;
 	}
 	
+	public int[] solveOnCorrect(){
+		int[] ret = new int[2];
+		fillNeeds();
+		int minerror=1000;
+		double a=.9;
+		double min_t=.00000001;
+		int i=0;
+		int loop_counter=0;
+		double k=1;
+		Cell[][] temp;
+			double t=1;
+		while(min_t<t){
+			temp = copyPuzzle(puzzle);
+			loop_counter+=1;
+			if(i==100){
+				i=0;
+				t=t*a;
+			}
+			i+=1;
+			chooseandSwap(temp);
+			int oldError=countCorrect(puzzle);
+			int newError=countCorrect(temp);
+//			int oldError=countErrors();
+//			int newError=countErrors(temp);
+			
+//			if(newError < oldError){
+//				puzzle=copyPuzzle(temp);
+//			}
+			if(newError > oldError){
+				puzzle=copyPuzzle(temp);
+			}
+			else if(Math.random() > Math.exp((oldError-newError)/(k*t)) ){
+			puzzle=copyPuzzle(temp);
+//			else if(Math.random() < Math.exp((oldError-newError)/(k*t)) ){
+//				puzzle=copyPuzzle(temp);
+			}
+			if(newError<minerror){
+				minerror=newError;
+			}	
+			if(countErrors() == 0)
+			{
+				ret[0] = minerror;
+				ret[1] = loop_counter;
+				return ret;
+			}
+		}
+		ret[0] = minerror;
+		ret[1] = loop_counter;
+		return ret;
+	}
+	
+	public int[] solve(){
+		int[] ret = new int[2];
+		fillNeeds();
+		int minerror=Integer.MAX_VALUE;
+		double a=.999;
+		double min_t=.000000001;
+		int i=0;
+		int temp_change = 100;
+		int loop_counter=0;
+		double k=0.7;
+		Cell[][] temp;
+			double t=1;
+		while(min_t<t){
+			temp = copyPuzzle(puzzle);
+			loop_counter++;
+			if(i==temp_change){
+				i=0;
+				t=t*a;
+			}
+			i+=1;
+			chooseandSwap(temp);
+			int oldError=countErrors();
+			int newError=countErrors(temp);
+			
+			if(newError < oldError){
+				puzzle=copyPuzzle(temp);
+			}
+			else if(Math.random() < Math.exp((oldError-newError)/(k*t)) ){
+				puzzle=copyPuzzle(temp);
+			}
+			if(newError<minerror){
+				minerror=newError;
+			}	
+			if(countErrors() == 0)
+			{
+				ret[0] = minerror;
+				ret[1] = loop_counter;
+				return ret;
+			}
+		}
+		ret[0] = minerror;
+		ret[1] = loop_counter;
+		return ret;
+	}
 	
 	
 	public void aneal()
@@ -154,11 +255,11 @@ public class SimAneal extends Sudoku{
 		printPuzzle();
 		int minerror=1000;
 		double t=1;
-		double a=.9;
+		double a=.99;
 		double min_t=.0000001;
 		int i=0;
 		int loop_counter=0;
-		double k=1;
+		double k=.8;
 		while(min_t<t){
 			tempPuzzle=puzzle;
 			loop_counter+=1;
@@ -166,7 +267,7 @@ public class SimAneal extends Sudoku{
 				i=0;
 				t=t*a;
 			}
-			i+=1;
+			i++;
 			chooseandSwap();
 			int oldError=countErrors(puzzle);
 			int newError=countErrors(tempPuzzle);		
@@ -186,4 +287,53 @@ public class SimAneal extends Sudoku{
 		printPuzzle();
 		System.out.println(minerror);
 	}
+	
+	public boolean chooseandSwap(Cell[][] puz)
+	{
+		int c1 = (int)(Math.random()*9);
+		int r1 = (int)(Math.random()*9);
+		
+		//or find neighbor
+		
+		int c2 = (int)(Math.random()*9);
+		int r2 = (int)(Math.random()*9);
+		return tempSwap(puz,r1,c1,r2,c2);
+	}
+	
+	private boolean tempSwap(Cell[][] puz, int i,int j,int m,int n)
+	{
+		if(puz[i][j].getFlag() || puz[m][n].getFlag())
+		{
+			return false;
+		}
+		if(puz[i][j].tryLock())
+		{
+			try {
+				if(puz[m][n].tryLock())
+				{
+					try {
+						//System.out.println(m + "," + n);
+						int temp = puz[i][j].getVal();
+						puz[i][j].setVal(puz[m][n].getVal());
+						puz[m][n].setVal(temp);
+					} finally {
+						puz[m][n].unlock();
+					}
+				}
+				else 
+				{
+					return false;
+				}
+			} finally{
+				puz[i][j].unlock();
+			}
+		}
+		else
+		{
+			return false;
+		}
+		return true;
+	}
 }
+
+
