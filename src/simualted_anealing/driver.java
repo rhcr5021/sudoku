@@ -14,10 +14,11 @@ public class driver {
 	public static int num_threads = 100;
 	public static LogAnealData log;
 	
+	//anealing parameters
 	static double a=.999;
-	static double min_t=.000000001;
+	static double min_t=.00000001;
 	static int temp_change = 100;
-	static double k=0.7;
+	static double k=0.9;
 	static double t=1;
 	/**
 	 * @param args
@@ -26,7 +27,6 @@ public class driver {
 	public static void main(String[] args) throws IOException {
 		final long startTime = System.nanoTime();
 		log = new LogAnealData();
-		log.logInit(a,min_t,temp_change,k,t);
 		sud = new SimAneal(diff,num);
 		sud.printPuzzle();
 		aneals = new Thread[num];
@@ -53,7 +53,7 @@ public class driver {
 //			}
 //		}
 		//int[] data = sud.solveOnCorrect();
-		int[] data = sud.solve();
+		int[] data = sud.solve(a,min_t,temp_change,k,t);
 		sud.printSolution();
 		sud.printPuzzle();
 		System.out.println("Minimum Number of Errors: " + data[0]);
@@ -63,6 +63,8 @@ public class driver {
 		System.out.println("Correct Indices: " + sud.countCorrect(sud.getPuzzle()));
 		System.out.println("is Solution?: " + sud.isSol());
 		final double duration = System.nanoTime() - startTime;
+		log.logInit(a,min_t,temp_change,k,t);
+		log.log_results(data,sud.countErrors(),sud.isValid(),sud.countCorrect(sud.getPuzzle()),sud.isSol(),duration/1000000000);
 		System.out.println("duration: " + (duration/1000000000) + " s");
 	}
 

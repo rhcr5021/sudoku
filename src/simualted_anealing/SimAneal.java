@@ -203,18 +203,13 @@ public class SimAneal extends Sudoku{
 		return ret;
 	}
 	
-	public int[] solve(){
+	public int[] solve(double a, double min_t, int temp_change, double k, double t){
 		int[] ret = new int[2];
 		fillNeeds();
 		int minerror=Integer.MAX_VALUE;
-		double a=.999;
-		double min_t=.000000001;
 		int i=0;
-		int temp_change = 100;
 		int loop_counter=0;
-		double k=0.7;
 		Cell[][] temp;
-			double t=1;
 		while(min_t<t){
 			temp = copyPuzzle(puzzle);
 			loop_counter++;

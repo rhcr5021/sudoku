@@ -31,7 +31,12 @@ public class LogAnealData {
 	
 	public void logInit(double a, double min_t, int temp_change, double k, double t)
 	{
-		logger.info("Anealing Metadata: " + "\na: " + a + "\nmin_t: " + min_t + "\ntemp_change: " + temp_change + "\nk: " + k + "\nt: " + t);
+		logger.info("Anealing Parameters: " + "\na: " + a + "\nmin_t: " + min_t + "\ntemp_change: " + temp_change + "\nk: " + k + "\nt: " + t);
+	}
+	
+	public void log_results(int[] data, int err, boolean valid, int correct, boolean sol, double dur)
+	{
+		logger.info("Anealing Results: " + "\nMinimum Number of Errors: " + data[0] + "\nNumber of Loop Iterations: " + data[1] + "\nErrors in Puzzle: " + err + "\nPuzzle is Valid: " + valid + "\nCorrect Indices: " + correct + "\nis Solution?: " + sol + "\nDuration: " + dur);
 	}
 }
 
