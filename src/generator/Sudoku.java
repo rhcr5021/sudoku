@@ -505,6 +505,8 @@ public class Sudoku {
 		return copy;
 	}
 	
+	
+	
 	public int countCorrect(Cell[][] puz)
 	{
 		int count = 0;

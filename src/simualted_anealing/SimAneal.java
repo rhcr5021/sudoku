@@ -20,18 +20,7 @@ public class SimAneal extends Sudoku{
 		super(diff,n);
 	}
 	
-	
-	public boolean chooseandSwap()
-	{
-		int c1 = (int)(Math.random()*9);
-		int r1 = (int)(Math.random()*9);
-		
-		//or find neighbor
-		
-		int c2 = (int)(Math.random()*9);
-		int r2 = (int)(Math.random()*9);
-		return tempSwap(r1,c1,r2,c2);
-	}
+
 
 	private boolean tempSwap(int i,int j,int m,int n)
 	{
@@ -206,11 +195,14 @@ public class SimAneal extends Sudoku{
 	public int[] solve(double a, double min_t, int temp_change, double k, double t){
 		int[] ret = new int[2];
 		fillNeeds();
+//		System.out.println("scrambled : ");
+		puzzle=copyPuzzle(scramblePuzzle(puzzle,500));
+//		printPuzzle();
 		int minerror=Integer.MAX_VALUE;
 		int i=0;
 		int loop_counter=0;
 		Cell[][] temp;
-		while(min_t<t){
+		while(t>min_t){
 			temp = copyPuzzle(puzzle);
 			loop_counter++;
 			if(i==temp_change){
@@ -237,51 +229,18 @@ public class SimAneal extends Sudoku{
 				ret[1] = loop_counter;
 				return ret;
 			}
+		if(minerror==0){
+			break;
 		}
+		}
+		
 		ret[0] = minerror;
 		ret[1] = loop_counter;
 		return ret;
 	}
 	
 	
-	public void aneal()
-	{
-		fillNeeds();
-		printPuzzle();
-		int minerror=1000;
-		double t=1;
-		double a=.99;
-		double min_t=.0000001;
-		int i=0;
-		int loop_counter=0;
-		double k=.8;
-		while(min_t<t){
-			tempPuzzle=puzzle;
-			loop_counter+=1;
-			if(i==100){
-				i=0;
-				t=t*a;
-			}
-			i++;
-			chooseandSwap();
-			int oldError=countErrors(puzzle);
-			int newError=countErrors(tempPuzzle);		
-			
-			if(newError < oldError){
-				puzzle=tempPuzzle;
-			}
-			else if(Math.random()< Math.exp((oldError-newError)/(k*t)) ){
-				puzzle=tempPuzzle;
-			}
-			if(newError<minerror){
-				minerror=newError;
-			}
-			
-		}
-		System.out.println(loop_counter);
-		printPuzzle();
-		System.out.println(minerror);
-	}
+	
 	
 	public boolean chooseandSwap(Cell[][] puz)
 	{
@@ -328,6 +287,24 @@ public class SimAneal extends Sudoku{
 			return false;
 		}
 		return true;
+	}
+	
+	protected Cell [][] scramblePuzzle(Cell[][] puz, int scrambles)
+	{
+		Cell[][] scrambled = new Cell[9][9];
+		for (int i = 0; i < 9; i++)
+		{
+			//go through the 9 chars in line
+			for (int j = 0; j < 9; j++)
+			{
+				scrambled[i][j] = new Cell(puz[i][j].getVal(),puz[i][j].getFlag());	
+				
+			}
+		}
+		for(int k=0; k<scrambles; k++){
+			chooseandSwap(scrambled);
+		}
+		return scrambled;
 	}
 }
 
