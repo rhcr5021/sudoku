@@ -3,6 +3,8 @@ package simualted_anealing;
 import generator.Sudoku.Cell;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 //import backtracking.ThreadID;
 
@@ -10,10 +12,12 @@ public class driver {
 	public static SimAneal sud;
 	public String diff;
 	public int num;
+	public static int winner;
 	public static Thread[] aneals;
-	public static int num_threads = 100;
+	public int num_threads;
 	public static LogAnealData log;
 	SimAneal[] AnealArray;
+	AtomicInteger c = new AtomicInteger(0);
 	
 	//anealing parameters
 	static double a=.99;
@@ -21,24 +25,26 @@ public class driver {
 	static int temp_change = 100;
 	static double k=1;
 	static double t=1;
-	boolean flag;
+	public static AtomicBoolean flag;
 	/**
+	 * @param threads 
 	 * @param args
 	 * @throws IOException 
 	 */
 	
-	public driver(String diff, int num){
+	public driver(String diff, int num, int threads){
 		this.diff=diff;
 		this.num=num;
-		this.flag=false;
+		driver.flag = new AtomicBoolean(false);
+		this.num_threads = threads;
 	}
 	
 	public void concurrent() throws IOException{
 		final long startTime = System.nanoTime();
 		System.out.println("being concurrent");
-		final SimAneal AnealArray[] = new SimAneal[10];
-		Thread aneals[] = new Thread[10];
-		for(int j=0; j<10; j++){
+		final SimAneal AnealArray[] = new SimAneal[num_threads];
+		aneals = new Thread[num_threads];
+		for(int j=0; j<num_threads; j++){
 		
 			aneals[j]= new Thread(new Runnable(){
 				public void run(){
@@ -46,29 +52,37 @@ public class driver {
 					try {
 						int correct=0;
 						AnealArray[mythreadID] =new SimAneal(diff, num);
-						while(correct!=81 && flag!=true){
+						while(correct!=81 && flag.get() != true){
+							c.getAndIncrement();
 							AnealArray[mythreadID].solve(a, min_t, temp_change, k, t);
 							correct=AnealArray[mythreadID].countCorrect(AnealArray[mythreadID].getPuzzle());
-							System.out.println(correct);
+							System.out.println(correct + ": " + AnealArray[mythreadID].countErrors());
 						}
 						if(correct==81){
-							flag=true;
+							flag.set(true);
 							System.out.print("finished");
+							winner = mythreadID;
 							AnealArray[mythreadID].printPuzzle();
+							System.out.println("Errors in Puzzle: " + AnealArray[winner].countErrors());
+							System.out.println("Puzzle is Valid: " + AnealArray[winner].isValid());
+							System.out.println("Correct Indices: " + AnealArray[winner].countCorrect(AnealArray[winner].getPuzzle()));
+							System.out.println("is Solution?: " + AnealArray[winner].isSol());
+							System.out.println("Aneals: " + c.get());
+							final double duration = System.nanoTime() - startTime;
+							System.out.println("duration: " + (duration/1000000000) + " s");
 						}
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
-			});
-//			aneals[j].run();			
+			});			
 		}
-		for(int k=0; k<10; k++){
+		for(int k=0; k<num_threads; k++){
 			aneals[k].start();
 		
 		}
-		for(int k=0; k<10; k++){
+		for(int k=0; k<num_threads; k++){
 			try {
 				aneals[k].join();
 			} catch (InterruptedException e) {
@@ -76,8 +90,6 @@ public class driver {
 				e.printStackTrace();
 			}
 		}
-		final double duration = System.nanoTime() - startTime;
-		System.out.println("duration: " + (duration/1000000000) + " s");
 	}
 	
 	
@@ -105,31 +117,6 @@ public class driver {
 			}
 			
 		}
-//		sud = new SimAneal(diff,num);
-//		sud.printPuzzle();
-//		aneals = new Thread[num];
-//		for (int j = 0; j < num; j++)
-//		{
-//			aneals[j] = new Thread(new Runnable(){
-//				public void run() {
-//					for(int i = 0; i < num; i++)
-//					{
-//						sud.solve();
-//					}
-//					System.out.println(ThreadID.get());	
-//				}
-//			});
-//			aneals[j].start();
-//		}
-//		for (int j = 0; j < num; j++)
-//		{
-//			try {
-//				aneals[j].join();
-//			} catch (InterruptedException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
-//		}
 		//int[] data = sud.solveOnCorrect();
 //		int[] data = sud.solve(a,min_t,temp_change,k,t);
 		sud.printSolution();

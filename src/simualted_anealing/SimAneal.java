@@ -204,7 +204,7 @@ public class SimAneal extends Sudoku{
 		int i=0;
 		int loop_counter=0;
 		Cell[][] temp;
-		while(t>min_t){
+		while(t>min_t && !driver.flag.get()){
 //			System.out.println(loop_counter);
 			temp = copyPuzzle(puzzle);
 			loop_counter++;

@@ -333,7 +333,7 @@ public class Sudoku {
 	public void printPuzzle()
 	{
 	  int i,j;
-	  System.out.println(dif+"Puz"+num);
+	  System.out.println("\n"+dif+"Puz"+num);
 	  System.out.print("-------------------------\n");
 	  for ( i = 0; i < 9; i++)
 		{
