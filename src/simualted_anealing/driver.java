@@ -8,11 +8,12 @@ import java.io.IOException;
 
 public class driver {
 	public static SimAneal sud;
-	public static String diff = "simple";
-	public static int num = 2;
+	public String diff;
+	public int num;
 	public static Thread[] aneals;
 	public static int num_threads = 100;
 	public static LogAnealData log;
+	SimAneal[] AnealArray;
 	
 	//anealing parameters
 	static double a=.99;
@@ -20,16 +21,67 @@ public class driver {
 	static int temp_change = 100;
 	static double k=1;
 	static double t=1;
+	boolean flag;
 	/**
 	 * @param args
 	 * @throws IOException 
 	 */
-	public static void concurrent() throws IOException{
+	
+	public driver(String diff, int num){
+		this.diff=diff;
+		this.num=num;
+		this.flag=false;
+	}
+	
+	public void concurrent() throws IOException{
+		final long startTime = System.nanoTime();
 		System.out.println("being concurrent");
+		final SimAneal AnealArray[] = new SimAneal[10];
+		Thread aneals[] = new Thread[10];
+		for(int j=0; j<10; j++){
+		
+			aneals[j]= new Thread(new Runnable(){
+				public void run(){
+					int mythreadID= ThreadID.get();
+					try {
+						int correct=0;
+						AnealArray[mythreadID] =new SimAneal(diff, num);
+						while(correct!=81 && flag!=true){
+							AnealArray[mythreadID].solve(a, min_t, temp_change, k, t);
+							correct=AnealArray[mythreadID].countCorrect(AnealArray[mythreadID].getPuzzle());
+							System.out.println(correct);
+						}
+						if(correct==81){
+							flag=true;
+							System.out.print("finished");
+							AnealArray[mythreadID].printPuzzle();
+						}
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			});
+//			aneals[j].run();			
+		}
+		for(int k=0; k<10; k++){
+			aneals[k].start();
+		
+		}
+		for(int k=0; k<10; k++){
+			try {
+				aneals[k].join();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		final double duration = System.nanoTime() - startTime;
+		System.out.println("duration: " + (duration/1000000000) + " s");
 	}
 	
 	
-	public static void sequential() throws IOException {
+	public void sequential() throws IOException {
 		final long startTime = System.nanoTime();
 		log = new LogAnealData();
 		int total=0;

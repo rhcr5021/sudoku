@@ -193,6 +193,8 @@ public class SimAneal extends Sudoku{
 	}
 	
 	public int[] solve(double a, double min_t, int temp_change, double k, double t){
+//		System.out.println("solving");
+//		System.out.println(t);
 		int[] ret = new int[2];
 		fillNeeds();
 //		System.out.println("scrambled : ");
@@ -203,6 +205,7 @@ public class SimAneal extends Sudoku{
 		int loop_counter=0;
 		Cell[][] temp;
 		while(t>min_t){
+//			System.out.println(loop_counter);
 			temp = copyPuzzle(puzzle);
 			loop_counter++;
 			if(i==temp_change){
@@ -229,6 +232,7 @@ public class SimAneal extends Sudoku{
 				ret[1] = loop_counter;
 				return ret;
 			}
+//		System.out.println(newError);
 		if(minerror==0){
 			break;
 		}
