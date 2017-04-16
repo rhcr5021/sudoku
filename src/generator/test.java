@@ -1,5 +1,7 @@
 package generator;
 
+import generator.Sudoku.Cell;
+
 import java.io.IOException;
 
 public class test {
@@ -18,6 +20,8 @@ public class test {
 		//make generator
 		System.out.println("Method 1: Import a Puzzle");
 		sud = new Sudoku(diff, p);
+		Cell[][] big = sud.massivePuzImport("puzzles/puz_81_81_ex.csv");
+		sud.printBigPuzzle(big);
 		sud.printPuzzle();
 		sud.fillNeeds();
 		sud.printPuzzle();

@@ -13,6 +13,7 @@ public class driver {
 	public String diff;
 	public int num;
 	public static int winner;
+	public static double duration;
 	public static Thread[] aneals;
 	public int num_threads;
 	public static LogAnealData log;
@@ -39,7 +40,7 @@ public class driver {
 		this.num_threads = threads;
 	}
 	
-	public void concurrent() throws IOException{
+	public boolean concurrent() throws IOException{
 		final long startTime = System.nanoTime();
 		System.out.println("being concurrent");
 		final SimAneal AnealArray[] = new SimAneal[num_threads];
@@ -62,21 +63,15 @@ public class driver {
 							flag.set(true);
 							System.out.print("finished");
 							winner = mythreadID;
-							AnealArray[mythreadID].printPuzzle();
-							System.out.println("Errors in Puzzle: " + AnealArray[winner].countErrors());
-							System.out.println("Puzzle is Valid: " + AnealArray[winner].isValid());
-							System.out.println("Correct Indices: " + AnealArray[winner].countCorrect(AnealArray[winner].getPuzzle()));
-							System.out.println("is Solution?: " + AnealArray[winner].isSol());
-							System.out.println("Aneals: " + c.get());
-							final double duration = System.nanoTime() - startTime;
-							System.out.println("duration: " + (duration/1000000000) + " s");
+							duration = System.nanoTime() - startTime;
+
 						}
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
-			});			
+			});		
 		}
 		for(int k=0; k<num_threads; k++){
 			aneals[k].start();
@@ -90,6 +85,14 @@ public class driver {
 				e.printStackTrace();
 			}
 		}
+		System.out.println("Errors in Puzzle: " + AnealArray[winner].countErrors());
+		System.out.println("Puzzle is Valid: " + AnealArray[winner].isValid());
+		System.out.println("Correct Indices: " + AnealArray[winner].countCorrect(AnealArray[winner].getPuzzle()));
+		System.out.println("is Solution?: " + AnealArray[winner].isSol());
+		System.out.println("Aneals: " + c.get());
+		AnealArray[winner].printPuzzle();
+		System.out.println("duration: " + (duration/1000000000) + " s");
+		return AnealArray[winner].isSol();
 	}
 	
 	

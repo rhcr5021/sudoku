@@ -1,5 +1,7 @@
 package generator;
 
+import generator.Sudoku.Cell;
+
 import java.io.*;
 import java.util.Scanner;
 import java.util.concurrent.locks.*;
@@ -447,6 +449,49 @@ public class Sudoku {
 		return puz;
 	}
 	
+	public Cell[][] massivePuzImport(String filename) throws FileNotFoundException
+	{
+		Cell[][] puz = new Cell[81][81];
+		File f = new File(filename);
+		Scanner infile = new Scanner(f);
+		String line;
+		infile.useDelimiter("\\s*,\\s*");
+		for (int i = 0; i < 81; i++)
+		{
+			for(int j = 0; j < 81; j++)
+			{
+				String s;
+				if (j == 80)
+				{
+					infile.useDelimiter("\n");
+					s = infile.next();
+					infile.useDelimiter("\\s*,\\s*");
+					s = s.substring(1);
+				}
+				else
+				{
+					s = infile.next();
+				}
+				if (s.contains("\n"))
+				{
+					s = s.substring(1);
+				}
+				if (s.hashCode() == 160)
+				{
+					//'.'s are zeros are unfilled cells
+					puz[i][j] = new Cell(0,false);
+				}
+				else
+				{
+					//convert to int
+					puz[i][j] = new Cell(Integer.parseInt(s),true);
+				}
+			}
+		}
+		infile.close();
+		return puz;
+	}
+	
 	public Cell[][] importSolution(String diff, int num) throws IOException
 	{
 		//return solution for specified difficulty and puzzle number
@@ -522,6 +567,36 @@ public class Sudoku {
 			}
 		}
 		return count;
+	}
+
+	public void printBigPuzzle(Cell[][] big) {
+		int i,j;
+		System.out.print("-------------------------\n");
+		for ( i = 0; i < 81; i++)
+		{
+			for ( j = 0; j < 81; j++)
+			{
+				if (j % 9 == 0)
+				{
+					System.out.print("- ");
+				}
+				if(big[i][j].flag)
+				{
+					System.out.print(big[i][j].val + " ");
+		//						String a = "\033[33m" + Integer.toString(puzzle[i][j].val);
+		//						System.out.print(a + " ");
+				}
+				else
+				{
+					System.out.print(big[i][j].val + " ");
+				}
+			}
+			if (i % 3 == 2)
+			{
+				System.out.print("-\n------------------------");
+			}
+			System.out.println("-");
+		}
 	}
 	
 }

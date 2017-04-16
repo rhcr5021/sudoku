@@ -16,7 +16,7 @@ public class BackTrackTest {
 		System.out.println("---------Solving---------");
 		System.out.println(sud.solve());
 		sud.printPuzzle();
-		sud.printSolution();
+		//sud.printSolution();
 		System.out.println("errors: " + sud.countErrors());
 		System.out.println("err: " + sud.getErr());		
 		System.out.println("puzzle still valid: " + sud.isValid());
