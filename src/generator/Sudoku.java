@@ -1,6 +1,6 @@
 package generator;
 
-import generator.Sudoku.Cell;
+import generator.Cell;
 
 import java.io.*;
 import java.util.Scanner;
@@ -13,6 +13,7 @@ public class Sudoku {
 	protected int num;
 	protected String dif;
 	protected int err;
+	protected Cell[][] big;
 	
 	public Cell[][] getPuzzle()
 	{
@@ -28,6 +29,7 @@ public class Sudoku {
 		solution = importSolution(diff, num);
 		err = countErrors();
 	}
+	
 	public Sudoku(String diff, int n) throws IOException {
 		super();
 		counts = new int[10];
@@ -35,49 +37,6 @@ public class Sudoku {
 		dif = diff;
 		puzzle = importPuzzle(diff,n);
 		solution = importSolution(diff, n);
-	}
-	
-	public class Cell
-	{
-		private int val;
-		private boolean flag;
-		private  Lock l = new ReentrantLock();
-		
-		public Cell(int val, boolean flag) {
-			super();
-			this.val = val;
-			this.flag = flag;
-		}
-
-		public void lock()
-		{
-			l.lock();
-		}
-		
-		public boolean tryLock()
-		{
-			return l.tryLock();
-		}
-		
-		public void unlock()
-		{
-			l.unlock();
-		}
-		
-		public int getVal() {
-			return val;
-		}
-
-		public void setVal(int val) {
-			this.val = val;
-		}
-
-		public boolean getFlag() {
-			return flag;
-		}
-		public void setFlag(boolean flag) {
-			this.flag = flag;
-		}
 	}
 	
 	public void updateErr() {
@@ -96,13 +55,13 @@ public class Sudoku {
 		{
 			for (int j = 0; j < 9; j++)
 			{
-				if (puzzle[i][j].flag == false)
+				if (puzzle[i][j].getFlag() == false)
 				{
 					if(needs[filler] == 9)
 					{
 						filler++;
 					}
-					puzzle[i][j].val = filler; 
+					puzzle[i][j].setVal(filler); 
 					needs[filler]++;
 				}
 			}
@@ -143,7 +102,7 @@ public class Sudoku {
 		{
 			for (int j = 0; j < 9; j++)
 			{
-				if (puzzle[i][j].val == v)
+				if (puzzle[i][j].getVal() == v)
 				{
 					count++;
 				}
@@ -160,9 +119,9 @@ public class Sudoku {
 		{
 			for (int j = 0; j < 9; j++)
 			{
-				if (puzzle[i][j].flag)
+				if (puzzle[i][j].getFlag())
 				{
-					needs[puzzle[i][j].val]++;
+					needs[puzzle[i][j].getVal()]++;
 				}
 			}
 		}
@@ -197,7 +156,7 @@ public class Sudoku {
 					try {
 						//System.out.println(m + "," + n);
 						int temp = puzzle[i][j].getVal();
-						puzzle[i][j].setVal(puzzle[m][n].val);
+						puzzle[i][j].setVal(puzzle[m][n].getVal());
 						puzzle[m][n].setVal(temp);
 					} finally {
 						puzzle[m][n].unlock();
@@ -232,6 +191,39 @@ public class Sudoku {
 		return (row+box+col);
 	}
 	
+	protected boolean isErrors() {
+		for (int i = 0; i < 9; i++)
+		{
+			if(isErrorInSection(getRow(i)))
+			{
+				return true;
+			}
+			else if(isErrorInSection(getCol(i)))
+			{
+				return true;
+			}
+			else if(isErrorInSection(getBox(i)))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private boolean isErrorInSection(int[] row) {
+		for (int i = 0; i < 9; i++)
+		{
+			for (int j = 0; j < 9; j++)
+			{
+				//only count once per pair and don't count zeros
+				if(i > j && row[i] == row[j] && row[i] != 0)
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 	public int countEmpty()
 	{
 		int i,j,count = 0;
@@ -345,15 +337,15 @@ public class Sudoku {
 				{
 					System.out.print("- ");
 				}
-				if(puzzle[i][j].flag)
+				if(puzzle[i][j].getFlag())
 				{
-					System.out.print(puzzle[i][j].val + " ");
+					System.out.print(puzzle[i][j].getVal() + " ");
 //					String a = "\033[33m" + Integer.toString(puzzle[i][j].val);
 //					System.out.print(a + " ");
 				}
 				else
 				{
-					System.out.print(puzzle[i][j].val + " ");
+					System.out.print(puzzle[i][j].getVal() + " ");
 				}
 			}
 			if (i % 3 == 2)
@@ -449,48 +441,48 @@ public class Sudoku {
 		return puz;
 	}
 	
-	public Cell[][] massivePuzImport(String filename) throws FileNotFoundException
-	{
-		Cell[][] puz = new Cell[81][81];
-		File f = new File(filename);
-		Scanner infile = new Scanner(f);
-		String line;
-		infile.useDelimiter("\\s*,\\s*");
-		for (int i = 0; i < 81; i++)
-		{
-			for(int j = 0; j < 81; j++)
-			{
-				String s;
-				if (j == 80)
-				{
-					infile.useDelimiter("\n");
-					s = infile.next();
-					infile.useDelimiter("\\s*,\\s*");
-					s = s.substring(1);
-				}
-				else
-				{
-					s = infile.next();
-				}
-				if (s.contains("\n"))
-				{
-					s = s.substring(1);
-				}
-				if (s.hashCode() == 160)
-				{
-					//'.'s are zeros are unfilled cells
-					puz[i][j] = new Cell(0,false);
-				}
-				else
-				{
-					//convert to int
-					puz[i][j] = new Cell(Integer.parseInt(s),true);
-				}
-			}
-		}
-		infile.close();
-		return puz;
-	}
+//	public Cell[][] massivePuzImport(String filename) throws FileNotFoundException
+//	{
+//		Cell[][] puz = new Cell[81][81];
+//		File f = new File(filename);
+//		Scanner infile = new Scanner(f);
+//		String line;
+//		infile.useDelimiter("\\s*,\\s*");
+//		for (int i = 0; i < 81; i++)
+//		{
+//			for(int j = 0; j < 81; j++)
+//			{
+//				String s;
+//				if (j == 80)
+//				{
+//					infile.useDelimiter("\n");
+//					s = infile.next();
+//					infile.useDelimiter("\\s*,\\s*");
+//					s = s.substring(1);
+//				}
+//				else
+//				{
+//					s = infile.next();
+//				}
+//				if (s.contains("\n"))
+//				{
+//					s = s.substring(1);
+//				}
+//				if (s.hashCode() == 160)
+//				{
+//					//'.'s are zeros are unfilled cells
+//					puz[i][j] = new Cell(0,false);
+//				}
+//				else
+//				{
+//					//convert to int
+//					puz[i][j] = new Cell(Integer.parseInt(s),true);
+//				}
+//			}
+//		}
+//		infile.close();
+//		return puz;
+//	}
 	
 	public Cell[][] importSolution(String diff, int num) throws IOException
 	{
@@ -568,36 +560,4 @@ public class Sudoku {
 		}
 		return count;
 	}
-
-	public void printBigPuzzle(Cell[][] big) {
-		int i,j;
-		System.out.print("-------------------------\n");
-		for ( i = 0; i < 81; i++)
-		{
-			for ( j = 0; j < 81; j++)
-			{
-				if (j % 9 == 0)
-				{
-					System.out.print("- ");
-				}
-				if(big[i][j].flag)
-				{
-					System.out.print(big[i][j].val + " ");
-		//						String a = "\033[33m" + Integer.toString(puzzle[i][j].val);
-		//						System.out.print(a + " ");
-				}
-				else
-				{
-					System.out.print(big[i][j].val + " ");
-				}
-			}
-			if (i % 3 == 2)
-			{
-				System.out.print("-\n------------------------");
-			}
-			System.out.println("-");
-		}
-	}
-	
 }
-	

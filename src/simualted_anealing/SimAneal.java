@@ -6,8 +6,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import sun.misc.Lock;
 
 import generator.Sudoku;
-import generator.Sudoku.Cell;
-
+import generator.Cell;
 
 public class SimAneal extends Sudoku{
 	private Cell[][] tempPuzzle;
@@ -20,8 +19,6 @@ public class SimAneal extends Sudoku{
 		super(diff,n);
 	}
 	
-
-
 	private boolean tempSwap(int i,int j,int m,int n)
 	{
 		if(tempPuzzle[i][j].getFlag() || tempPuzzle[m][n].getFlag())

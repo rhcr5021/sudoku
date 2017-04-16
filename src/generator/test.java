@@ -1,6 +1,6 @@
 package generator;
 
-import generator.Sudoku.Cell;
+import generator.Cell;
 
 import java.io.IOException;
 
@@ -11,6 +11,7 @@ public class test {
 	public static int tot = 1000;
 	public static int min = Integer.MAX_VALUE;
 	public static Sudoku sud;
+	public static BigSudoku big;
 	public static Thread[] swaps;
 	public static String diff = "expert";
 	public static int p = 4;
@@ -20,8 +21,8 @@ public class test {
 		//make generator
 		System.out.println("Method 1: Import a Puzzle");
 		sud = new Sudoku(diff, p);
-		Cell[][] big = sud.massivePuzImport("puzzles/puz_81_81_ex.csv");
-		sud.printBigPuzzle(big);
+		big = new BigSudoku("puzzles/puz_81_81_ex.csv");
+		big.printBigPuzzle();
 		sud.printPuzzle();
 		sud.fillNeeds();
 		sud.printPuzzle();

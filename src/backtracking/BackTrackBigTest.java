@@ -1,7 +1,5 @@
 package backtracking;
 
-import generator.Sudoku.Cell;
-
 import java.io.IOException;
 
 public class BackTrackBigTest {
@@ -11,11 +9,12 @@ public class BackTrackBigTest {
 	public static int num = 100;
 	public static void main(String[] args) throws IOException {
 		final long startTime = System.nanoTime();
-		Backtracking sud = new Backtracking(diff, n,num);
-		sud.big = sud.massivePuzImport("puzzles/puz_81_81_ex.csv");
-		sud.printBigPuzzle(sud.big);
-		sud.solveBig();
-		sud.printBigPuzzle(sud.big);
+		BigBackTracking sud = new BigBackTracking("puzzles/puz_81_81_ex.csv");
+		sud.printBigPuzzle();
+		boolean t = sud.solveBig();
+		sud.printBigPuzzle();
+		System.out.println(sud.countErrorsBig());
+		System.out.println(t);
 		final double duration = System.nanoTime() - startTime;
 		System.out.println("duration: " + (duration/1000000000) + " s");
 	}

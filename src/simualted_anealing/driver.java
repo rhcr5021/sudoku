@@ -1,6 +1,6 @@
 package simualted_anealing;
 
-import generator.Sudoku.Cell;
+import generator.Cell;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
