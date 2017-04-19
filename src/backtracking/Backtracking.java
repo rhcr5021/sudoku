@@ -4,17 +4,41 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import generator.Cell;
 import generator.Sudoku;
+
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class Backtracking extends Sudoku {
 	int num_threads;
 	
-	private class Backer extends Thread {
-		public void run ()
+	
+	private class BackerTask {
+		ExecutorService exec = Executors.newCachedThreadPool();
+		boolean add(Cell[][] puz)
 		{
+			Future<?> future = exec.submit(new AddTask(puz));
+			return false;
 			
 		}
+		
+		public class AddTask implements Runnable {
+			Cell[][] puz;
+			public AddTask(Cell[][] puzzle)
+			{
+				puz = puzzle;
+			}
+			
+			public void run()
+			{
+				
+			}
+		}
 	}
+	
 	
 	public Backtracking(String diff, int t,boolean big) throws IOException {
 		super(diff);
