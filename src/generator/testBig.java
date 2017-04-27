@@ -68,6 +68,7 @@ public class testBig {
 //		System.out.println("min errors: " + min);
 		final double duration = System.nanoTime() - startTime;
 		System.out.println("duration: " + (duration/1000000000) + " s");
+		System.exit(0);
 	}
 
 }

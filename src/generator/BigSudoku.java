@@ -27,7 +27,8 @@ public class BigSudoku {
 	private RowErr[] ro;
 	private ColErr[] co;
 	private BoxErr[] bo;
-	private ExecutorService service = Executors.newFixedThreadPool(81*3);
+//	private ExecutorService service = Executors.newFixedThreadPool(81*3);
+	private ExecutorService service = Executors.newFixedThreadPool(30);
 	private BoundedQueue<Integer> q;
 	private List<RowErr> RowList = new ArrayList<RowErr>();
 	private List<ColErr> ColList = new ArrayList<ColErr>();
@@ -47,7 +48,7 @@ public class BigSudoku {
 		ro = new RowErr[81];
 		co = new ColErr[81];
 		bo = new BoxErr[81];
-		q = new BoundedQueue<Integer>(81*3);
+		q = new BoundedQueue<Integer>(81*3+3);
 		
 		for (int i = 0; i < 81; i++)
 		{

@@ -27,7 +27,8 @@ public class Sudoku {
 	private ColErr[] co;
 	private BoxErr[] bo;
 	protected Cell[][] big;
-	ExecutorService service = Executors.newFixedThreadPool(9*3);
+//	ExecutorService service = Executors.newFixedThreadPool(9*3);
+	private ExecutorService service = Executors.newFixedThreadPool(5);
 	private BoundedQueue<Integer> q;
 	private List<RowErr> RowList = new ArrayList<RowErr>();
 	private List<ColErr> ColList = new ArrayList<ColErr>();
