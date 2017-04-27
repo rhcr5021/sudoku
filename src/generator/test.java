@@ -21,13 +21,20 @@ public class test {
 		//make generator
 		System.out.println("Method 1: Import a Puzzle");
 		sud = new Sudoku(diff, p);
-		big = new BigSudoku("puzzles/puz_81_81_ex.csv");
-		big.printBigPuzzle();
-		sud.printPuzzle();
+		long start = System.nanoTime();
+		System.out.println("Error Concurrent: " + sud.countErrConcurrent()+ ": " + (double)(System.nanoTime() - start)/1000000000);
+		start = System.nanoTime();
+		System.out.println("Error Sequential: " + sud.countErrors() + ": " + (double)(System.nanoTime() - start)/1000000000);
+		System.out.println("After fill: ");
 		sud.fillNeeds();
-		sud.printPuzzle();
-		System.out.println("errors: " + sud.countErrors());
-		//Generator generator = new Generator();
+		start = System.nanoTime();
+		System.out.println("Error Concurrent: " + sud.countErrConcurrent() + ": " + (double)(System.nanoTime() - start)/1000000000);
+		start = System.nanoTime();
+		System.out.println("Error Sequential: " + sud.countErrors()+ ": " + (double)(System.nanoTime() - start)/1000000000);
+		
+		start = System.nanoTime();
+		System.out.println("Error: " + sud.countErrors());
+		System.out.println((double)(System.nanoTime() - start)/1000000000);
 		swaps = new Thread[num];
 		for (int j = 0; j < num; j++)
 		{

@@ -3,7 +3,16 @@ package generator;
 import generator.Cell;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.*;
 
 public class Sudoku {
@@ -13,7 +22,19 @@ public class Sudoku {
 	protected int num;
 	protected String dif;
 	protected int err;
+	protected AtomicInteger fin;
+	private RowErr[] ro;
+	private ColErr[] co;
+	private BoxErr[] bo;
 	protected Cell[][] big;
+	ExecutorService service = Executors.newFixedThreadPool(9*3);
+	private BoundedQueue<Integer> q;
+	private List<RowErr> RowList = new ArrayList<RowErr>();
+	private List<ColErr> ColList = new ArrayList<ColErr>();
+	private List<BoxErr> BoxList = new ArrayList<BoxErr>();
+	private Future<Integer>[] rowe = new Future[9];
+	private Future<Integer>[] cole = new Future[9];
+	private Future<Integer>[] boxe = new Future[9];
 	
 	public Cell[][] getPuzzle()
 	{
@@ -28,6 +49,16 @@ public class Sudoku {
 		puzzle = importPuzzle(diff,num);
 		solution = importSolution(diff, num);
 		err = countErrors();
+		fin = new AtomicInteger(0);
+		ro = new RowErr[9];
+		co = new ColErr[9];
+		bo = new BoxErr[9];
+		for (int i = 0; i < 9; i++)
+		{
+			ro[i] = new RowErr(i);
+			co[i] = new ColErr(i);
+			bo[i] = new BoxErr(i);
+		}
 	}
 	
 	public Sudoku(String diff, int n) throws IOException {
@@ -37,6 +68,16 @@ public class Sudoku {
 		dif = diff;
 		puzzle = importPuzzle(diff,n);
 		solution = importSolution(diff, n);
+		fin = new AtomicInteger(0);
+		ro = new RowErr[9];
+		co = new ColErr[9];
+		bo = new BoxErr[9];
+		for (int i = 0; i < 9; i++)
+		{
+			ro[i] = new RowErr(i);
+			co[i] = new ColErr(i);
+			bo[i] = new BoxErr(i);
+		}
 	}
 	
 	public void updateErr() {
@@ -176,6 +217,108 @@ public class Sudoku {
 		}
 		updateErr();
 		return true;
+	}
+	
+	private class RowErr implements Callable<Integer>
+	{
+		int r;
+		public RowErr(int r)
+		{
+			this.r = r;
+			//row = getRow(r);
+		}
+		public Integer call() throws Exception {
+			// TODO Auto-generated method stub
+			return checkSection(getRow(r));
+		}
+	}
+	
+	private class ColErr implements Callable<Integer>
+	{
+		int c;
+		public ColErr(int c)
+		{
+			this.c = c;
+		}
+		public Integer call() throws Exception {
+			// TODO Auto-generated method stub
+			return checkSection(getCol(c));
+		}
+	}
+	
+	private class BoxErr implements Callable<Integer>
+	{
+		int b;
+		public BoxErr(int b)
+		{
+			this.b = b;
+		}
+
+		public Integer call() throws Exception {
+			// TODO Auto-generated method stub
+			return checkSection(getBox(b));
+		}
+	}
+	
+	private class SumBox implements Callable<Integer>
+	{
+		public Integer call() throws Exception {
+			int err = 0;
+			for (int i = 0; i < 9; i++)
+			{
+				err += boxe[i].get();
+			}
+			return err;
+		}
+	}
+	
+	private class SumRow implements Callable<Integer>
+	{
+		public Integer call() throws Exception {
+			int err = 0;
+			for (int i = 0; i < 9; i++)
+			{
+				err += rowe[i].get();
+			}
+			return err;
+		}
+	}
+	
+	private class SumCol implements Callable<Integer>
+	{
+		public Integer call() throws Exception {
+			int err = 0;
+			for (int i = 0; i < 9; i++)
+			{
+				err += cole[i].get();
+			}
+			return err;
+		}
+	}
+	
+	int countErrConcurrent()
+	{
+		int err = 0;
+		try {
+			for (int i = 0; i < 9; i++)
+			{
+				rowe[i] = service.submit(ro[i]);
+				cole[i] = service.submit(bo[i]);
+				boxe[i] = service.submit(co[i]);
+			}
+			service.awaitTermination(10000, TimeUnit.MICROSECONDS);
+			Future<Integer> row_total = service.submit(new SumRow());
+			Future<Integer> box_total = service.submit(new SumBox());
+			Future<Integer> col_total = service.submit(new SumCol());
+			err += row_total.get() + box_total.get() + col_total.get();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return err;
 	}
 	
 	public int countErrors()
@@ -378,28 +521,6 @@ public class Sudoku {
 				System.out.println("-");
 			}
 	}
-	public Cell[][] intPuzzleGen(int num)
-	{
-		Generator generator = new Generator();
-		Grid grid = generator.generate(num);
-		Cell[][] puz = new Cell[9][9];
-		for (int i = 0; i < 9; i++)
-		{
-			for (int j = 0; j < 9; j++)
-			{
-				puz[i][j].setVal(grid.grid[i][j].getValue());
-				if (puz[i][j].getVal() == 0)
-				{
-					puz[i][j].setFlag(false);
-				}
-				else
-				{
-					puz[i][j].setFlag(true);
-				}
-			}
-		}
-		return puz;
-	}
 	
 	public Cell[][] importPuzzle(String diff, int num) throws IOException
 	{
@@ -440,49 +561,6 @@ public class Sudoku {
 		//return puzzle id
 		return puz;
 	}
-	
-//	public Cell[][] massivePuzImport(String filename) throws FileNotFoundException
-//	{
-//		Cell[][] puz = new Cell[81][81];
-//		File f = new File(filename);
-//		Scanner infile = new Scanner(f);
-//		String line;
-//		infile.useDelimiter("\\s*,\\s*");
-//		for (int i = 0; i < 81; i++)
-//		{
-//			for(int j = 0; j < 81; j++)
-//			{
-//				String s;
-//				if (j == 80)
-//				{
-//					infile.useDelimiter("\n");
-//					s = infile.next();
-//					infile.useDelimiter("\\s*,\\s*");
-//					s = s.substring(1);
-//				}
-//				else
-//				{
-//					s = infile.next();
-//				}
-//				if (s.contains("\n"))
-//				{
-//					s = s.substring(1);
-//				}
-//				if (s.hashCode() == 160)
-//				{
-//					//'.'s are zeros are unfilled cells
-//					puz[i][j] = new Cell(0,false);
-//				}
-//				else
-//				{
-//					//convert to int
-//					puz[i][j] = new Cell(Integer.parseInt(s),true);
-//				}
-//			}
-//		}
-//		infile.close();
-//		return puz;
-//	}
 	
 	public Cell[][] importSolution(String diff, int num) throws IOException
 	{

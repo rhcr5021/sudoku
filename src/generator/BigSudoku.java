@@ -5,14 +5,59 @@ import generator.Cell;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 
 public class BigSudoku {
 	protected Cell[][] big;
+	private AtomicInteger fin,err;
+	private RowErr[] ro;
+	private ColErr[] co;
+	private BoxErr[] bo;
+	private ExecutorService service = Executors.newFixedThreadPool(81*3);
+	private BoundedQueue<Integer> q;
+	private List<RowErr> RowList = new ArrayList<RowErr>();
+	private List<ColErr> ColList = new ArrayList<ColErr>();
+	private List<BoxErr> BoxList = new ArrayList<BoxErr>();
+	private Future<Integer>[] rowe = new Future[81];
+	private Future<Integer>[] cole = new Future[81];
+	private Future<Integer>[] boxe = new Future[81];
+	private Lock l = new ReentrantLock();
+	private Condition new_fut = l.newCondition();
+	
 	
 	public BigSudoku(String filename) throws IOException {
 		super();
 		big = massivePuzImport(filename);
+		fin = new AtomicInteger(0);
+		err = new AtomicInteger(0);
+		ro = new RowErr[81];
+		co = new ColErr[81];
+		bo = new BoxErr[81];
+		q = new BoundedQueue<Integer>(81*3);
+		
+		for (int i = 0; i < 81; i++)
+		{
+			ro[i] = new RowErr(i);
+			RowList.add(ro[i]);
+			co[i] = new ColErr(i);
+			ColList.add(co[i]);
+			bo[i] = new BoxErr(i);
+			BoxList.add(bo[i]);
+		}
 	}
 	
 	public Cell[][] massivePuzImport(String filename) throws FileNotFoundException
@@ -302,4 +347,141 @@ public class BigSudoku {
 		}
 		return copy;
 	}
+	
+	private class RowErr implements Callable<Integer>
+	{
+		int r;
+		public RowErr(int r)
+		{
+			this.r = r;
+			//row = getRow(r);
+		}
+		public Integer call() throws Exception {
+			// TODO Auto-generated method stub
+			return checkSectionBig(getRowBig(r));
+		}
+	}
+	
+	private class ColErr implements Callable<Integer>
+	{
+		int c;
+		public ColErr(int c)
+		{
+			this.c = c;
+		}
+		public Integer call() throws Exception {
+			// TODO Auto-generated method stub
+			return checkSectionBig(getColBig(c));
+		}
+	}
+	
+	private class BoxErr implements Callable<Integer>
+	{
+		int b;
+		public BoxErr(int b)
+		{
+			this.b = b;
+		}
+
+		public Integer call() throws Exception {
+			// TODO Auto-generated method stub
+			return checkSectionBig(getBoxBig(b));
+		}
+	}
+	
+	private class SumBox implements Callable<Integer>
+	{
+		public Integer call() throws Exception {
+			int err = 0;
+			for (int i = 0; i < 81; i++)
+			{
+				err += boxe[i].get();
+			}
+			return err;
+		}
+	}
+	
+	private class SumRow implements Callable<Integer>
+	{
+		public Integer call() throws Exception {
+			int err = 0;
+			for (int i = 0; i < 81; i++)
+			{
+				err += rowe[i].get();
+			}
+			return err;
+		}
+	}
+	
+	private class SumCol implements Callable<Integer>
+	{
+		public Integer call() throws Exception {
+			int err = 0;
+			for (int i = 0; i < 81; i++)
+			{
+				err += cole[i].get();
+			}
+			return err;
+		}
+	}
+	
+	boolean isErrConcurrent()
+	{
+		boolean ret = false;
+		int row = 0;
+		int col = 0;
+		int box = 0;
+		try {
+			for (int i = 0; i < 81; i++)
+			{
+				rowe[i] = service.submit(ro[i]);
+				cole[i] = service.submit(bo[i]);
+				boxe[i] = service.submit(co[i]);
+			}
+			service.awaitTermination(10000, TimeUnit.MICROSECONDS);
+			for (int i = 0; i < 81; i++)
+			{
+//				row += rowe[i].get(10, TimeUnit.MICROSECONDS);
+				row += rowe[i].get();
+				col += cole[i].get();
+				box += boxe[i].get();
+			}
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return ret;
+	}
+	
+	int countErrConcurrent()
+	{
+		int err = 0;
+		try {
+			for (int i = 0; i < 81; i++)
+			{
+				rowe[i] = service.submit(ro[i]);
+				cole[i] = service.submit(bo[i]);
+				boxe[i] = service.submit(co[i]);
+			}
+//			service.awaitTermination(10000, TimeUnit.MICROSECONDS);
+			Future<Integer> row_total = service.submit(new SumRow());
+			Future<Integer> box_total = service.submit(new SumBox());
+			Future<Integer> col_total = service.submit(new SumCol());
+			service.awaitTermination(10000, TimeUnit.MICROSECONDS);
+			err += row_total.get() + box_total.get() + col_total.get();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return err;
+	}
+
 }
+
+
