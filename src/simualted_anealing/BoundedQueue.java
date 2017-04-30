@@ -1,4 +1,4 @@
-package generator;
+package simualted_anealing;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -12,6 +12,7 @@ public class BoundedQueue<T> {
 	public AtomicInteger size;
 	private Node<T> head, tail;
 	private int capacity;
+	public AtomicBoolean init;
 	
 	protected class Node<T> {
 		public T value;
@@ -28,6 +29,7 @@ public class BoundedQueue<T> {
 		head = new Node<T>(null);
 		tail = head;
 		size = new AtomicInteger(0);
+		init = new AtomicBoolean(true);
 		enqLock = new ReentrantLock();
 		deqLock = new ReentrantLock();
 	}
@@ -53,6 +55,11 @@ public class BoundedQueue<T> {
 		deqLock.lock();
 		try
 		{
+			//return if queue is full or empty
+			if (size.get() == 0 || size.get() == capacity)
+			{
+				return null;
+			}
 			//get the value 
 			result = head.next.value;
 			head = head.next;
@@ -85,10 +92,5 @@ public class BoundedQueue<T> {
 	public int getCapacity()
 	{
 		return capacity;
-	}
-
-	public int getSize() {
-		// TODO Auto-generated method stub
-		return size.get();
 	}
 }

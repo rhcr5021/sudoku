@@ -27,12 +27,20 @@ public class BigSudoku {
 	private RowErr[] ro;
 	private ColErr[] co;
 	private BoxErr[] bo;
-//	private ExecutorService service = Executors.newFixedThreadPool(81*3);
-	private ExecutorService service = Executors.newFixedThreadPool(30);
-	private BoundedQueue<Integer> q;
+	//private ExecutorService service = Executors.newFixedThreadPool(6);
+	private ExecutorService service = Executors.newCachedThreadPool();
 	private List<RowErr> RowList = new ArrayList<RowErr>();
 	private List<ColErr> ColList = new ArrayList<ColErr>();
 	private List<BoxErr> BoxList = new ArrayList<BoxErr>();
+	private List<BoxErr> SumList = new ArrayList<BoxErr>();
+	Future<Integer> row_total; 
+	Future<Integer> box_total;
+	Future<Integer> col_total; 
+	Future<Integer> sums; 
+	private Summer sum = new Summer();
+	private SumCol sum_col = new SumCol();
+	private SumBox sum_box = new SumBox();
+	private SumRow sum_row = new SumRow();
 	private Future<Integer>[] rowe = new Future[81];
 	private Future<Integer>[] cole = new Future[81];
 	private Future<Integer>[] boxe = new Future[81];
@@ -48,8 +56,6 @@ public class BigSudoku {
 		ro = new RowErr[81];
 		co = new ColErr[81];
 		bo = new BoxErr[81];
-		q = new BoundedQueue<Integer>(81*3+3);
-		
 		for (int i = 0; i < 81; i++)
 		{
 			ro[i] = new RowErr(i);
@@ -233,6 +239,8 @@ public class BigSudoku {
 		return col;
 	}
 	
+	//message based approach vs multithreaded approach
+	
 	private int[] getRowBig(int i) {
 		int [] row = new int[81];
 		for (int j = 0; j < 81; j++)
@@ -254,6 +262,8 @@ public class BigSudoku {
 				{
 					count++;
 				}
+				//error checking in a stack
+				//multiple players
 			}
 		}
 		return count;
@@ -359,7 +369,8 @@ public class BigSudoku {
 		}
 		public Integer call() throws Exception {
 			// TODO Auto-generated method stub
-			return checkSectionBig(getRowBig(r));
+			int err = checkSectionBig(getRowBig(r));
+			return err;
 		}
 	}
 	
@@ -372,7 +383,8 @@ public class BigSudoku {
 		}
 		public Integer call() throws Exception {
 			// TODO Auto-generated method stub
-			return checkSectionBig(getColBig(c));
+			int err = checkSectionBig(getColBig(c));
+			return err;
 		}
 	}
 	
@@ -386,7 +398,8 @@ public class BigSudoku {
 
 		public Integer call() throws Exception {
 			// TODO Auto-generated method stub
-			return checkSectionBig(getBoxBig(b));
+			int err = checkSectionBig(getBoxBig(b));
+			return err;
 		}
 	}
 	
@@ -396,7 +409,12 @@ public class BigSudoku {
 			int err = 0;
 			for (int i = 0; i < 81; i++)
 			{
+				while(!boxe[i].isDone())
+				{
+					Thread.yield();
+				}
 				err += boxe[i].get();
+				//err+= service.invokeAny(BoxList);
 			}
 			return err;
 		}
@@ -408,7 +426,12 @@ public class BigSudoku {
 			int err = 0;
 			for (int i = 0; i < 81; i++)
 			{
+				while(!rowe[i].isDone())
+				{
+					Thread.yield();
+				}
 				err += rowe[i].get();
+//				err+= service.invokeAny(RowList);
 			}
 			return err;
 		}
@@ -420,7 +443,25 @@ public class BigSudoku {
 			int err = 0;
 			for (int i = 0; i < 81; i++)
 			{
+				while(!cole[i].isDone())
+				{
+					Thread.yield();
+				}
+				
 				err += cole[i].get();
+//				err+= service.invokeAny(ColList);
+			}
+			return err;
+		}
+	}
+	
+	private class Summer implements Callable<Integer>
+	{
+		public Integer call() throws Exception {
+			int err = 0;
+			for (int i = 0; i < 81; i++)
+			{
+//				err+= service.invokeAny(RowList);
 			}
 			return err;
 		}
@@ -442,7 +483,6 @@ public class BigSudoku {
 			service.awaitTermination(10000, TimeUnit.MICROSECONDS);
 			for (int i = 0; i < 81; i++)
 			{
-//				row += rowe[i].get(10, TimeUnit.MICROSECONDS);
 				row += rowe[i].get();
 				col += cole[i].get();
 				box += boxe[i].get();
@@ -467,12 +507,11 @@ public class BigSudoku {
 				cole[i] = service.submit(bo[i]);
 				boxe[i] = service.submit(co[i]);
 			}
-//			service.awaitTermination(10000, TimeUnit.MICROSECONDS);
-			Future<Integer> row_total = service.submit(new SumRow());
-			Future<Integer> box_total = service.submit(new SumBox());
-			Future<Integer> col_total = service.submit(new SumCol());
-			service.awaitTermination(10000, TimeUnit.MICROSECONDS);
-			err += row_total.get() + box_total.get() + col_total.get();
+			row_total = service.submit(sum_row);
+			box_total = service.submit(sum_box);
+			col_total = service.submit(sum_col);
+			//service.awaitTermination(10000, TimeUnit.MICROSECONDS);
+			err = row_total.get() + box_total.get() + col_total.get();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

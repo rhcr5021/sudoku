@@ -17,6 +17,7 @@ public class testBig {
 		//make generator
 		big = new BigSudoku("puzzles/puz_81_81_ex.csv");
 		//big.printBigPuzzle();
+		System.out.println("Processors: " + Runtime.getRuntime().availableProcessors());
 		long start = System.nanoTime();
 		System.out.println("Error Concurrent: " + big.countErrConcurrent()+ ": " + (double)(System.nanoTime() - start)/1000000000);
 		start = System.nanoTime();

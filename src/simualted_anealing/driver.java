@@ -1,8 +1,16 @@
 package simualted_anealing;
 
+import generator.BoundedQueue;
 import generator.Cell;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -12,12 +20,18 @@ public class driver {
 	public static SimAneal sud;
 	public String diff;
 	public int num;
+	public int size = 10;
 	public static int winner;
+	private BoundedQueue<Aneal> anealers = new BoundedQueue<Aneal>(20);
+	private List<Aneal> aneal_list = new ArrayList<Aneal>();
 	public static double duration;
 	public static Thread[] aneals;
+	private List<Future<Integer>> futures = new ArrayList<Future<Integer>>();
 	public int num_threads;
+	SimAneal test;
 	public static LogAnealData log;
 	SimAneal[] AnealArray;
+	private ExecutorService service = Executors.newCachedThreadPool();
 	AtomicInteger c = new AtomicInteger(0);
 	
 	//anealing parameters
@@ -32,6 +46,13 @@ public class driver {
 	 * @param args
 	 * @throws IOException 
 	 */
+	
+	private class Aneal implements Callable<Integer>
+	{
+		public Integer call() throws Exception {
+			return test.solve(a, min_t, temp_change, k, t)[0];
+		}
+	}
 	
 	public driver(String diff, int num, int threads){
 		this.diff=diff;
@@ -93,6 +114,51 @@ public class driver {
 		AnealArray[winner].printPuzzle();
 		System.out.println("duration: " + (duration/1000000000) + " s");
 		return AnealArray[winner].isSol();
+	}
+	
+	public boolean concurrent_pool() throws IOException{
+		final long startTime = System.nanoTime();
+		test = new SimAneal(diff, num);
+		System.out.println("being concurrent");
+		Aneal l = new Aneal();
+		for (int i = 0; i < anealers.getCapacity(); i++)
+		{
+			anealers.enq(l);
+			aneal_list.add(l);
+			service.submit(l);
+		}
+		int err = Integer.MAX_VALUE;
+		while(true)
+		{
+			try {
+				err = service.invokeAny(aneal_list);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (ExecutionException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			if (err == 0)
+			{
+				System.out.println("Errors in Puzzle: " + test.countErrors());
+				System.out.println("Puzzle is Valid: " + test.isValid());
+				System.out.println("Correct Indices: " + test.countCorrect(AnealArray[winner].getPuzzle()));
+				System.out.println("is Solution?: " + test.isSol());
+				test.printPuzzle();
+				service.shutdown();
+				System.out.println("duration: " + (duration/1000000000) + " s");
+				return true;
+			}
+			anealers.deq();
+			while(anealers.getSize() < 20)
+			{
+				anealers.enq(l);
+				service.submit(l);
+			}
+			System.out.println(err);
+			service.submit(new Aneal());
+		}
 	}
 	
 	

@@ -396,7 +396,7 @@ public class Sudoku {
 		return count;
 	}
 	
-	private int checkSection(int row[]) {
+	protected int checkSection(int row[]) {
 		int count = 0;
 		//check for duplicates
 		for (int i = 0; i < 9; i++)

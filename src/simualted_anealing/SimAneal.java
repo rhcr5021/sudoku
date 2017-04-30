@@ -1,6 +1,8 @@
 package simualted_anealing;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 
 import sun.misc.Lock;
@@ -18,7 +20,6 @@ public class SimAneal extends Sudoku{
 	public SimAneal(String diff, int n) throws IOException {
 		super(diff,n);
 	}
-	
 	private boolean tempSwap(int i,int j,int m,int n)
 	{
 		if(tempPuzzle[i][j].getFlag() || tempPuzzle[m][n].getFlag())
@@ -67,7 +68,7 @@ public class SimAneal extends Sudoku{
 		}
 		return (row+box+col);
 	}
-	private int checkSection(int row[]) {
+	protected int checkSection(int row[]) {
 		int count = 0;
 		//check for duplicates
 		for (int i = 0; i < 9; i++)
