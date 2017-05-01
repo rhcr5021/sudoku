@@ -160,7 +160,7 @@ public class Backtracking extends Sudoku {
 	{
 		int temp = puzzle[row][col].getVal();
 		puzzle[row][col].setVal(guess);
-		if(countErrors() > 0)
+		if(isErrors(puzzle))
 		{
 			puzzle[row][col].setVal(temp);
 			return false;
@@ -183,7 +183,7 @@ public class Backtracking extends Sudoku {
 		return (row+box+col);
 	}
 	
-	private int[] getBox(int i, Cell[][] mypuzz) {
+	protected int[] getBox(int i, Cell[][] mypuzz) {
 		//use index i to get col and row indexes for the box
 		/*  _____
 		 * |0|1|2|
@@ -219,7 +219,7 @@ public class Backtracking extends Sudoku {
 		return box;
 	}
 	
-	private int [] getCol(int i, Cell[][] mypuzz) {
+	protected int [] getCol(int i, Cell[][] mypuzz) {
 		int [] col = new int[9];
 		for (int j = 0; j < 9; j++)
 		{
@@ -228,13 +228,32 @@ public class Backtracking extends Sudoku {
 		return col;
 	}
 	
-	private int[] getRow(int i, Cell[][] mypuzz) {
+	protected int[] getRow(int i, Cell[][] mypuzz) {
 		int [] row = new int[9];
 		for (int j = 0; j < 9; j++)
 		{
 			row[j] = mypuzz[i][j].getVal();
 		}
 		return row;
+	}
+	
+	protected boolean isErrors(Cell[][] puz) {
+		for (int i = 0; i < 9; i++)
+		{
+			if(isErrorInSection(getRow(i, puz)))
+			{
+				return true;
+			}
+			else if(isErrorInSection(getCol(i, puz)))
+			{
+				return true;
+			}
+			else if(isErrorInSection(getBox(i, puz)))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 	
 }

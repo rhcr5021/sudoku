@@ -135,7 +135,7 @@ public class ConcurrentBacktracking extends Backtracking {
 	{
 		int temp = puz[row][col].getVal();
 		puz[row][col].setVal(guess);
-		if(countErrors(puz) > 0)
+		if(isErrors(puz))
 		{
 			puz[row][col].setVal(temp);
 			return false;
@@ -144,4 +144,23 @@ public class ConcurrentBacktracking extends Backtracking {
 		return true;
 		
 	}
+	protected boolean isErrors(Cell[][] puz) {
+		for (int i = 0; i < 9; i++)
+		{
+			if(isErrorInSection(getRow(i, puz)))
+			{
+				return true;
+			}
+			else if(isErrorInSection(getCol(i, puz)))
+			{
+				return true;
+			}
+			else if(isErrorInSection(getBox(i, puz)))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+	
 }

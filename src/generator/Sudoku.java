@@ -354,7 +354,8 @@ public class Sudoku {
 		return false;
 	}
 	
-	private boolean isErrorInSection(int[] row) {
+	
+	protected boolean isErrorInSection(int[] row) {
 		for (int i = 0; i < 9; i++)
 		{
 			for (int j = 0; j < 9; j++)
@@ -413,7 +414,7 @@ public class Sudoku {
 		return count;
 	}
 	
-	private int[] getBox(int i) {
+	protected int[] getBox(int i) {
 		//use index i to get col and row indexes for the box
 		/* =======
 		 * |0|1|2|
@@ -450,7 +451,7 @@ public class Sudoku {
 		return box;
 	}
 	
-	private int [] getCol(int i) {
+	protected int [] getCol(int i) {
 		int [] col = new int[9];
 		for (int j = 0; j < 9; j++)
 		{
@@ -459,7 +460,7 @@ public class Sudoku {
 		return col;
 	}
 	
-	private int[] getRow(int i) {
+	protected int[] getRow(int i) {
 		int [] row = new int[9];
 		for (int j = 0; j < 9; j++)
 		{
