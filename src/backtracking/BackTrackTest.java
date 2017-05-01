@@ -14,8 +14,8 @@ public class BackTrackTest {
 		Backtracking sud = new Backtracking(diff, n,num);
 		sud.printPuzzle();
 		System.out.println("---------Solving---------");
-		//System.out.println(sud.solve());
-		System.out.println(sud.solveConcurrent());
+		System.out.println(sud.solve());
+//		System.out.println(sud.solveConcurrent());
 		sud.printPuzzle();
 		//sud.printSolution();
 		System.out.println("errors: " + sud.countErrors());

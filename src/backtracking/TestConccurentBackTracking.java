@@ -14,19 +14,22 @@ public class TestConccurentBackTracking {
 		final long startTime = System.nanoTime();
 		ConcurrentBacktracking sud = new ConcurrentBacktracking(diff, n,num);
 		sud.printPuzzle();
+		sud.printSolution();
 		System.out.println("---------Solving---------");
 		//System.out.println(sud.solve());
 		Cell[][] sol= sud.solveConcurrent2();
 		if(sol== null){
 			System.out.println("no solution found");
+//			System.exit(0);
 			return;
 		}
 		System.out.println(sol);
-		sud.printPuzzle();
+		
+		sud.printInputedPuzzle(sol);
 		//sud.printSolution();
-		System.out.println("errors: " + sud.countErrors());
-		System.out.println("err: " + sud.getErr());		
-		System.out.println("puzzle still valid: " + sud.isValid());
+		System.out.println("errors: " + sud.countErrors(sol));
+//		System.out.println("err: " + sud.getErr(sol));		
+//		System.out.println("puzzle still valid: " + sud.isValid(sol));
 		final double duration = System.nanoTime() - startTime;
 		System.out.println("duration: " + (duration/1000000000) + " s");
 		System.exit(0);

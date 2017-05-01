@@ -42,9 +42,17 @@ public class ConcurrentBacktracking extends Backtracking {
 		}
 		public Cell[][] call() throws Exception {
 			puz[c][r].setVal(t);
-			int[] spot = findEmptyCell(puz);
-			int row = spot[0], col = spot[1];
-			return solve(puz);
+//			int[] spot = findEmptyCell(puz);
+//			int row = spot[0], col = spot[1];
+			
+			 Cell[][] tempsol= solve(puz);
+			 System.out.println( t+" ++>");
+			 printInputedPuzzle(tempsol);
+//			 if(findEmptyCell(tempsol)==null){
+				 return tempsol;
+//			 }else{
+//				 return null;
+//			 }
 				
 //			System.out.pRINTLN(COUNTERRORS(PUZ));
 //			RETURN NULL;
@@ -58,7 +66,7 @@ public class ConcurrentBacktracking extends Backtracking {
 			int row = spot[0], col = spot[1];
 			for (int g = 0; g < 9; g++)
 			{
-				first_triers.add(new TryNew(puzzle,g,row,col));
+				first_triers.add(new TryNew(copyPuzzle(puzzle),g+1,row,col));
 				service.submit(first_triers.get(g));
 			}
 			try {
@@ -66,13 +74,12 @@ public class ConcurrentBacktracking extends Backtracking {
 				for(int j=0; j<9; j++){
 					Cell[][] tempsol=f.get(j).get();
 					System.out.println("future " + j + " got");
-					if(tempsol==null){
-						System.out.println("null");
+					if(tempsol!=null && findEmptyCell(tempsol)==null){
+						
+						printInputedPuzzle(tempsol);
+						return tempsol;
 					}else{						
-						printInputedPuzzle(f.get(j).get());
-					}
-					if(f.get(j).get()!=null){
-						return f.get(j).get();
+						System.out.println("null");
 					}
 				}
 			} catch (InterruptedException e) {
@@ -81,7 +88,7 @@ public class ConcurrentBacktracking extends Backtracking {
 			}
 			
 			return null;
-		}
+		} 
 	}
 	
 	public Cell[][] solve(Cell[][] puzzle){
@@ -98,16 +105,18 @@ public class ConcurrentBacktracking extends Backtracking {
 				int temp = puzzle[row][col].getVal();
 				puzzle[row][col].setVal(g);
 				Cell[][] tsol=solve(puzzle);
-				if(tsol!=null)
+				if(findEmptyCell(tsol)==null)
 				{
-					System.out.println("sucess");
+//					System.out.println("sucess");
+					
 					return tsol;
 				}
 				puzzle[row][col].setVal(temp);
 			}
 		}
 //		printInputedPuzzle(puzzle);
-		return null;
+//		System.out.println("should not print");
+		return puzzle;
 	}
 	public int[] findEmptyCell(Cell[][] puz)
 	{
@@ -132,7 +141,7 @@ public class ConcurrentBacktracking extends Backtracking {
 	{
 		int temp = puz[row][col].getVal();
 		puz[row][col].setVal(guess);
-		if(countErrors() > 0)
+		if(countErrors(puz) > 0)
 		{
 			puz[row][col].setVal(temp);
 			return false;
