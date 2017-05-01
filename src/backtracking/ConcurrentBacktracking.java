@@ -41,21 +41,16 @@ public class ConcurrentBacktracking extends Backtracking {
 			puz = puzzle;
 		}
 		public Cell[][] call() throws Exception {
-			puz[c][r].setVal(t);
-//			int[] spot = findEmptyCell(puz);
-//			int row = spot[0], col = spot[1];
+			if(!checkCell(puz,r,c,t)){
+				return null;
+			}
 			
+			puz[c][r].setVal(t);
+			
+
 			 Cell[][] tempsol= solve(puz);
-			 System.out.println( t+" ++>");
-			 printInputedPuzzle(tempsol);
-//			 if(findEmptyCell(tempsol)==null){
-				 return tempsol;
-//			 }else{
-//				 return null;
-//			 }
-				
-//			System.out.pRINTLN(COUNTERRORS(PUZ));
-//			RETURN NULL;
+
+			 return tempsol;
 		}
 	}
 	
@@ -63,25 +58,24 @@ public class ConcurrentBacktracking extends Backtracking {
 	{
 	{
 			int[] spot = findEmptyCell(puzzle);
+			List<Future<Cell[][]>> myFutures = new ArrayList<Future<Cell[][]>>();
 			int row = spot[0], col = spot[1];
 			for (int g = 0; g < 9; g++)
 			{
 				first_triers.add(new TryNew(copyPuzzle(puzzle),g+1,row,col));
-				service.submit(first_triers.get(g));
+				myFutures.add(service.submit(first_triers.get(g)));
 			}
 			try {
-				List<Future<Cell[][]>> f = service.invokeAll(first_triers);
+//				List<Future<Cell[][]>> f = service.invokeAll(first_triers);
 				for(int j=0; j<9; j++){
-					Cell[][] tempsol=f.get(j).get();
-					System.out.println("future " + j + " got");
+					
+					Cell[][] tempsol= myFutures.get(j).get();
+
 					if(tempsol!=null && findEmptyCell(tempsol)==null){
 						
-						printInputedPuzzle(tempsol);
+//						printInputedPuzzle(tempsol);
 						return tempsol;
-					}else{						
-						System.out.println("null");
-					}
-				}
+					}				}
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
