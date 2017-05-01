@@ -500,6 +500,38 @@ public class Sudoku {
 		}
 	}
 	
+	public void printInputedPuzzle(Cell[][] puz)
+	{
+	  int i,j;
+	  System.out.println("\n"+dif+"Puz"+num);
+	  System.out.print("-------------------------\n");
+	  for ( i = 0; i < 9; i++)
+		{
+			for ( j = 0; j < 9; j++)
+			{
+				if (j % 3 == 0)
+				{
+					System.out.print("- ");
+				}
+				if(puz[i][j].getFlag())
+				{
+					System.out.print(puz[i][j].getVal() + " ");
+//					String a = "\033[33m" + Integer.toString(puzzle[i][j].val);
+//					System.out.print(a + " ");
+				}
+				else
+				{
+					System.out.print(puz[i][j].getVal() + " ");
+				}
+			}
+			if (i % 3 == 2)
+			{
+				System.out.print("-\n------------------------");
+			}
+			System.out.println("-");
+		}
+	}
+	
 	public void printSolution()
 	{
 		  int i,j;
